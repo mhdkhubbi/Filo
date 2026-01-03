@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.mhdkhubbi.filo.ui.theme.Gray100
+import io.mhdkhubbi.filo.ui.theme.Gray500
 
 @Composable
 fun StorageInfo() {
@@ -32,7 +34,7 @@ fun StorageInfo() {
     ) {  Box(
         modifier = Modifier.border(
             width=1.dp,
-            color = Color(0xFFF3F4F6),
+            color = Gray100,
             shape = RoundedCornerShape(12.dp)
         ).padding(16.dp)
     ) {
@@ -46,7 +48,7 @@ fun StorageInfo() {
             Column(
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text("Internal Storage", color = Color(0xFF9CA3AF))
+                Text("Internal Storage", color = Gray500)
                 Spacer(Modifier.height(8.dp))
                 Text("85 GB of 128 GB Used")
             }
