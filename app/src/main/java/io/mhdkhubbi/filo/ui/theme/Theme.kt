@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import io.mhdkhubbi.andro.ui.theme.AppTypography
 
 val LightColors = lightColorScheme(
     primary = Blue500,
@@ -59,7 +60,7 @@ fun FiloTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 }
