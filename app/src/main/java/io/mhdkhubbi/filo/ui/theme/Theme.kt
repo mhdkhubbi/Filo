@@ -39,6 +39,7 @@ val DarkColors = darkColorScheme(
     outline = Gray600
 )
 
+
 @Composable
 fun FiloTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
