@@ -1,6 +1,7 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -26,20 +29,31 @@ fun StorageInfo() {
     Column(
         modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
+    ) {  Box(
+        modifier = Modifier.border(
+            width=1.dp,
+            color = Color(0xFFF3F4F6),
+            shape = RoundedCornerShape(12.dp)
+        ).padding(16.dp)
     ) {
         Row(
-            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth(),
+
             verticalAlignment = Alignment.CenterVertically
         ) {
             CustomCircularProgressIndicator()
-            Column(verticalArrangement = Arrangement.Center,
-                ) {
+            Spacer(Modifier.width(15.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+            ) {
                 Text("Internal Storage", color = Color(0xFF9CA3AF))
                 Spacer(Modifier.height(8.dp))
                 Text("85 GB of 128 GB Used")
             }
 
         }
+    }
+
 
 
     }
@@ -52,8 +66,8 @@ fun CustomCircularProgressIndicator(){
             .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator({ 0.6f }, strokeWidth = 7.dp)
-        Text("66%", modifier = Modifier.padding(20.dp), fontSize = 10.sp)
+        CircularProgressIndicator({ 0.6f }, strokeWidth = 10.dp, modifier = Modifier.size(70.dp))
+        Text("66%", modifier = Modifier.padding(20.dp), fontSize = 13.sp)
     }
 
 }
