@@ -26,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.mhdkhubbi.filo.ui.theme.Gray100
+import io.mhdkhubbi.filo.ui.theme.Gray500
 
 @Composable
 fun SearchField(
@@ -36,8 +38,9 @@ fun SearchField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(start = 10.dp, end = 10.dp)
             .height(40.dp)
-            .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp)),
+            .background(Gray100, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
         Row( modifier = Modifier.padding(8.dp),
@@ -47,7 +50,7 @@ fun SearchField(
             Icon(
                 Icons.Default.Search,
                 contentDescription = "Search",
-                tint = Color(0xFF9CA3AF)
+                tint = Gray500
             )
 
             Spacer(Modifier.width(8.dp))
@@ -61,7 +64,7 @@ fun SearchField(
                     if (text.isEmpty()) {
                         Text(
                             "Search folders or files",
-                            color = Color(0xFF9CA3AF)
+                            color = Gray500
                         )
                     }
                     innerTextField()
