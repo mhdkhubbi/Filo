@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CenteredSearchField(
+fun SearchField(
     values: String="",
     onValueChange: (String) -> Unit={}
 ) {
@@ -74,6 +74,6 @@ fun CenteredSearchField(
 @Preview
 @Composable
 fun SearchPreview() {
-    CenteredSearchField(
+    SearchField(
     )
 }
