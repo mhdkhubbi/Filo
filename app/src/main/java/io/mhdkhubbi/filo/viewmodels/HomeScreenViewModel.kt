@@ -1,24 +1,19 @@
 package io.mhdkhubbi.filo.viewmodels
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import io.mhdkhubbi.filo.datamodel.StorageStats
-import io.mhdkhubbi.filo.domain.formatSize
 import io.mhdkhubbi.filo.domain.getStorageStats
-import io.mhdkhubbi.filo.domain.listFilesIn
 
 
 class HomeScreenViewModel : ViewModel() {
-    var files by mutableStateOf(listFilesIn("/storage/emulated/0"))
-
-
     private val stats: StorageStats = getStorageStats()
-
     val usedBytes: Long = stats.usedBytes
     val totalBytes: Long = stats.totalBytes
 
+    fun formatDecimalGB(bytes: Long): String {
+        val gb = 1000.0 * 1000 * 1000 // decimal GB
+        return String.format("%.1f GB", bytes / gb)
+    }
 
 
     fun getUsagePercent(): Float {
@@ -31,7 +26,8 @@ class HomeScreenViewModel : ViewModel() {
         return String.format("%.0f%%", percent)
     }
     fun formateUsagePercent(): String{
-        return "${formatSize(usedBytes)} of ${formatSize(totalBytes)} Used"
+        return "${formatDecimalGB(stats.usedBytes)} of ${formatDecimalGB(stats.totalBytes)} Used"
     }
+
 
 }
