@@ -1,7 +1,7 @@
 package io.mhdkhubbi.filo.viewmodels
 
 import androidx.lifecycle.ViewModel
-import io.mhdkhubbi.filo.datamodel.StorageStats
+import io.mhdkhubbi.filo.domain.StorageStats
 import io.mhdkhubbi.filo.domain.getStorageStats
 
 
