@@ -33,7 +33,7 @@ fun TopBar(){
             )
             Spacer(modifier=Modifier.width(10.dp))
             Text(modifier=Modifier.weight(1f),
-                text="Filo", fontSize = 30.sp, fontWeight = FontWeight.Medium)
+                text="Filo", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
             Icon(
                 painter = painterResource(R.drawable.settings),
                 contentDescription = "Search",
