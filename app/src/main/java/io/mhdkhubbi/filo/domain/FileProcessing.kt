@@ -1,12 +1,11 @@
 package io.mhdkhubbi.filo.domain
 
+
 import android.os.Environment
 import android.os.StatFs
 import io.mhdkhubbi.filo.datamodel.FileType
 import io.mhdkhubbi.filo.datamodel.FsEntry
 import io.mhdkhubbi.filo.datamodel.StorageStats
-
-
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
@@ -94,8 +93,9 @@ fun getStorageStats(): StorageStats {
     val totalBlocks = stat.blockCountLong
     val availableBlocks = stat.availableBlocksLong
 
-    val total = totalBlocks * blockSize
-    val used = total - (availableBlocks * blockSize)
+    val totalBytes = totalBlocks * blockSize
+    val freeBytes = availableBlocks * blockSize
+    val usedBytes = totalBytes - freeBytes
 
-    return StorageStats(usedBytes = used, totalBytes = total)
+    return StorageStats(usedBytes, totalBytes)
 }
