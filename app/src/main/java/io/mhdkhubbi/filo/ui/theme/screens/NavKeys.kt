@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object HomeScreen : NavKey
 
-@Serializable
-data class WelcomeScreen(val name: String) : NavKey
-
 
 @Serializable
 data object ProfileScreen : NavKey
+
+@Serializable
+data class FolderScreen(val path: String) : NavKey
