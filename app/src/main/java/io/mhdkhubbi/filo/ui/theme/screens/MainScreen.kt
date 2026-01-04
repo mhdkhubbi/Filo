@@ -1,42 +1,41 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import io.mhdkhubbi.filo.ui.theme.components.FolderComose
-import io.mhdkhubbi.filo.ui.theme.components.StorageInfo
-import io.mhdkhubbi.filo.ui.theme.components.TopBar
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 
 
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(top = 50.dp),
 
+    val backStack = rememberNavBackStack(HomeScreen)
+    val onNavigation: (NavKey) -> Unit = {
+        backStack.add(it)
+    }
+    val onClearBackStack: () -> Unit = {
+        while (backStack.size > 1) {
+            backStack.removeLastOrNull()
 
-        ) {
-
-        TopBar()
-        Spacer(Modifier.height(25.dp))
-        StorageInfo()
-        Spacer(Modifier.height(17.dp))
-        StorageInfo()
-        Text(modifier = Modifier.padding(start = 10.dp, top = 10.dp),
-            text = "Favorites",
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 21.sp,
-        )
-        FolderComose()
+        }
 
     }
+
+    NavDisplay(
+        backStack = backStack,
+        onBack = { backStack.removeLastOrNull() },
+        entryProvider = entryProvider {
+            entry<HomeScreen> {
+                HomeScreen(onNavigation=onNavigation)
+            }
+            entry<FolderScreen> { entry ->
+                FileScreen(path = entry.path, onNavigation = onNavigation)
+            }
+        }
+
+    )
+
 }
+
