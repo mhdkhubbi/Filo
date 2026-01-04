@@ -1,4 +1,4 @@
-package io.mhdkhubbi.filo.datamodel
+package io.mhdkhubbi.filo.domain
 
 data class FsEntry(
     val name: String,
