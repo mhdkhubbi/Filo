@@ -13,22 +13,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
 import io.mhdkhubbi.filo.ui.theme.components.StorageInfo
-import io.mhdkhubbi.filo.ui.theme.components.TopBar
+import io.mhdkhubbi.filo.viewmodels.HomeScreenViewModel
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier,onNavigation: (NavKey) -> Unit) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    onNavigation: (NavKey) -> Unit,
+    viewModel: HomeScreenViewModel = HomeScreenViewModel()
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 50.dp),
 
-
-        ) {
-
-        TopBar()
-        Spacer(Modifier.height(25.dp))
+    ) {
         StorageInfo(
-            onNavigation = { onNavigation(FolderScreen("/storage/emulated/0")) }
+            onNavigation = { onNavigation(FolderScreen("/storage/emulated/0")) },
+            { viewModel.getUsagePercent() },
+            viewModel.formateUsagePercent(),
+            viewModel.getUsageLabel()
         )
         Spacer(Modifier.height(17.dp))
 
