@@ -8,7 +8,4 @@ data object HomeScreen : NavKey
 
 
 @Serializable
-data object ProfileScreen : NavKey
-
-@Serializable
 data class FolderScreen(val path: String) : NavKey
