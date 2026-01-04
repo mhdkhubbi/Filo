@@ -8,7 +8,19 @@ import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
-
+fun listFilesInLight(path: String): List<FsEntry> {
+    val root = Path(path)
+    return root.listDirectoryEntries().map { entry ->
+        FsEntry(
+            name = entry.name,
+            fullPath = entry.toString(),
+            isDirectory = entry.isDirectory(),
+            type = detectType(entry),
+            sizeBytes = if (entry.isDirectory()) 0L else entry.toFile().length(),
+            itemCount = getItemCount(entry)
+        )
+    }
+}
 fun listFilesIn(path: String): List<FsEntry> {
     val root = Path(path)
 
