@@ -2,9 +2,11 @@ package io.mhdkhubbi.filo.domain
 
 import android.os.Environment
 import android.os.StatFs
-import io.mhdkhubbi.filo.FileType
-import io.mhdkhubbi.filo.FsEntry
-import io.mhdkhubbi.filo.viewmodels.StorageStats
+import io.mhdkhubbi.filo.datamodel.FileType
+import io.mhdkhubbi.filo.datamodel.FsEntry
+import io.mhdkhubbi.filo.datamodel.StorageStats
+
+
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
