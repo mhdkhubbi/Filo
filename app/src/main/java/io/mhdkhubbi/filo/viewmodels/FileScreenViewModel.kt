@@ -1,8 +1,8 @@
+
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.mhdkhubbi.filo.domain.FsEntry
-import io.mhdkhubbi.filo.domain.formatSize
 import io.mhdkhubbi.filo.domain.getFolderSize
 import io.mhdkhubbi.filo.domain.listFilesInLight
 import kotlinx.coroutines.Dispatchers
@@ -62,9 +62,5 @@ class FileScreenViewModel : ViewModel() {
         }
     }
 
-    fun formatSizeView(bytes: Long):String{
-        val formated=formatSize(bytes)
-        return formated
 
-    }
 }
