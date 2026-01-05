@@ -1,6 +1,7 @@
 package io.mhdkhubbi.filo.domain
 
 
+import android.annotation.SuppressLint
 import android.os.Environment
 import android.os.StatFs
 import java.nio.file.Path
@@ -8,9 +9,10 @@ import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
+
 fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> {
     val root = Path(path)
-    return root.listDirectoryEntries().map { entry ->
+    return root.listDirectoryEntries().filter { !it.name.startsWith(".") }.map { entry ->
         val cachedSize = sizeCache[entry.toString()]
         FsEntry(
             name = entry.name,
@@ -22,37 +24,23 @@ fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> 
         )
     }
 }
-fun listFilesIn(path: String): List<FsEntry> {
-    val root = Path(path)
 
-    return root.listDirectoryEntries().map { entry ->
-        FsEntry(
-            name = entry.name,
-            fullPath = entry.toString(),
-            isDirectory = entry.isDirectory(),
-            type = detectType(entry),
-            sizeBytes = getSize(entry),
-            itemCount = getItemCount(entry)
-        )
-
-    }
-}
 fun detectType(entry: Path): FileType {
     val name = entry.name.lowercase()
-
     return when {
         entry.isDirectory() -> FileType.FOLDER
         name.endsWith(".pdf") -> FileType.PDF
         name.endsWith(".apk") -> FileType.APK
         name.endsWith(".jpg") || name.endsWith(".jpeg") ||
                 name.endsWith(".png") || name.endsWith(".gif") -> FileType.IMAGE
-        name.endsWith(".mp4") || name.endsWith(".mkv") ||
-                name.endsWith(".avi") -> FileType.VIDEO
-        name.endsWith(".mp3") || name.endsWith(".wav") ||
-                name.endsWith(".aac") -> FileType.AUDIO
+
+        name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".avi") -> FileType.VIDEO
+        name.endsWith(".mp3") || name.endsWith(".wav") || name.endsWith(".aac") -> FileType.AUDIO
         else -> FileType.OTHER
     }
+
 }
+
 fun getSize(entry: Path): Long {
     return try {
         val file = entry.toFile()
@@ -69,6 +57,8 @@ fun getItemCount(entry: Path): Int {
         0
     }
 }
+
+@SuppressLint("DefaultLocale")
 fun formatSize(bytes: Long): String {
     if (bytes <= 0) return "0 B"
 
@@ -97,6 +87,7 @@ fun getFolderSize(path: Path): Long {
         0L
     }
 }
+
 fun getStorageStats(): StorageStats {
     val stat = StatFs(Environment.getExternalStorageDirectory().path)
     val blockSize = stat.blockSizeLong
