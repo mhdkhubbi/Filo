@@ -12,17 +12,23 @@ import kotlin.io.path.name
 
 fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> {
     val root = Path(path)
-    return root.listDirectoryEntries().filter { !it.name.startsWith(".") }.map { entry ->
-        val cachedSize = sizeCache[entry.toString()]
-        FsEntry(
-            name = entry.name,
-            fullPath = entry.toString(),
-            isDirectory = entry.isDirectory(),
-            type = detectType(entry),
-            sizeBytes = if (entry.isDirectory()) cachedSize ?: 0L else entry.toFile().length(),
-            itemCount = getItemCount(entry)
-        )
-    }
+    return root.listDirectoryEntries()
+        .filter { !it.name.startsWith(".") } // skip hidden files/folders
+        .map { entry ->
+            val cachedSize = sizeCache[entry.toString()]
+            FsEntry(
+                name = entry.name,
+                fullPath = entry.toString(),
+                isDirectory = entry.isDirectory(),
+                type = detectType(entry),
+                sizeBytes = if (entry.isDirectory()) {
+                    cachedSize ?: 0L   // use cached size if available
+                } else {
+                    entry.toFile().length()
+                },
+                itemCount = getItemCount(entry)
+            )
+        }
 }
 
 fun detectType(entry: Path): FileType {
