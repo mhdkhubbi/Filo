@@ -9,7 +9,6 @@ data class FsEntry(
     val itemCount: Int
 )
 
-
 enum class FileType {
     FOLDER,
     PDF,
