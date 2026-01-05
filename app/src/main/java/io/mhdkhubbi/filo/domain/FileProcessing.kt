@@ -16,22 +16,20 @@ fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> 
         .filter { !it.name.startsWith(".") } // skip hidden files/folders
         .map { entry ->
             val cachedSize = sizeCache[entry.toString()]
+            val sizeBytes = if (entry.isDirectory()) {
+                cachedSize ?: 0L   // use cached size if available, else 0
+            } else {
+                entry.toFile().length()
+            }
+
             FsEntry(
                 name = entry.name,
                 fullPath = entry.toString(),
                 isDirectory = entry.isDirectory(),
                 type = detectType(entry),
-                sizeBytes = if (entry.isDirectory()) {
-                    cachedSize ?: 0L   // use cached size if available
-                } else {
-                    entry.toFile().length()
-                },
+                sizeBytes = sizeBytes,
                 itemCount = getItemCount(entry),
-                sizeMega =formatSize( if (entry.isDirectory()) {
-                    cachedSize ?: 0L   // use cached size if available
-                } else {
-                    entry.toFile().length()
-                })
+                sizeMega = formatSize(sizeBytes) // always format from current sizeBytes
             )
         }
 }
