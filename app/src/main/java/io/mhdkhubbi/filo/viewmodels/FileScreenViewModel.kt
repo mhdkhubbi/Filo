@@ -1,5 +1,8 @@
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.mhdkhubbi.filo.domain.FsEntry
@@ -20,9 +23,11 @@ class FileScreenViewModel : ViewModel() {
 
     // Cache sizes so they don’t reset to 0 when you revisit
     private val sizeCache = mutableMapOf<String, Long>()
-
+    var isLoading by mutableStateOf(false)
+        private set
     fun loadFiles(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            isLoading = true
             // Lightweight listing without recursive sizes
             val base = listFilesInLight(path, sizeCache)
                 .filter { !Path(it.fullPath).name.startsWith(".") }
@@ -43,7 +48,8 @@ class FileScreenViewModel : ViewModel() {
 
             withContext(Dispatchers.Main) {
                 _files.clear()
-                _files.addAll(withSizes) // replace content, keep order
+                _files.addAll(withSizes)
+                isLoading = false// replace content, keep order
             }
 
             // Compute missing folder sizes asynchronously, update in place
@@ -63,6 +69,14 @@ class FileScreenViewModel : ViewModel() {
                         }
                     }
                 }
+            }
+        }
+    }
+    fun loadFilesAndThenNavigate(path: String, onReady: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            loadFiles(path)   // your existing function
+            withContext(Dispatchers.Main) {
+                onReady()
             }
         }
     }
