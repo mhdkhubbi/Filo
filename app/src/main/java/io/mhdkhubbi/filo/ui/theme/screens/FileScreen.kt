@@ -1,20 +1,27 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
+import FolderViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.NavKey
+import io.mhdkhubbi.filo.ui.theme.components.FileList
 import io.mhdkhubbi.filo.ui.theme.components.FloderViewMode
-import io.mhdkhubbi.filo.ui.theme.components.FolderComose
+
 
 @Composable
-fun FileScreen(){
+fun FileScreen(path: String, onNavigation: (NavKey) -> Unit, viewModel: FolderViewModel = viewModel(),
+                 ){
 
-    Column{
+
+    Column {
         FloderViewMode()
-        FolderComose()
-        FolderComose()
-        FolderComose()
-        FolderComose()
-        FolderComose()
+        LaunchedEffect(path) {
+            viewModel.loadFiles(path)
+        }
+        FileList(path,onNavigation,viewModel.files,)
+
     }
 
 
