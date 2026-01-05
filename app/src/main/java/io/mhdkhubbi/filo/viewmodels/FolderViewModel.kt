@@ -21,18 +21,17 @@ class FolderViewModel : ViewModel() {
 
     fun loadFiles(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val result = listFilesInLight(path) // lightweight listing
+            val result = listFilesInLight(path, sizeCache)
             withContext(Dispatchers.Main) {
                 _files.value = result
             }
 
-            // launch background jobs for folder sizes
-            result.filter { it.isDirectory }.forEach { entry ->
-                if (!sizeCache.containsKey(entry.fullPath)) {
+            // calculate missing sizes in background
+            result.filter { it.isDirectory && !sizeCache.containsKey(it.fullPath) }
+                .forEach { entry ->
                     viewModelScope.launch(Dispatchers.IO) {
                         val size = getFolderSize(Path(entry.fullPath))
                         sizeCache[entry.fullPath] = size
-                        // update entry in list
                         withContext(Dispatchers.Main) {
                             _files.value = _files.value.map {
                                 if (it.fullPath == entry.fullPath) it.copy(sizeBytes = size) else it
@@ -40,7 +39,6 @@ class FolderViewModel : ViewModel() {
                         }
                     }
                 }
-            }
         }
     }
 }
