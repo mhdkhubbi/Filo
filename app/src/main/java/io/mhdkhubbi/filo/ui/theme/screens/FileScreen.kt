@@ -1,6 +1,6 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
-import FolderViewModel
+import FileScreenViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,16 +11,18 @@ import io.mhdkhubbi.filo.ui.theme.components.FloderViewMode
 
 
 @Composable
-fun FileScreen(path: String, onNavigation: (NavKey) -> Unit, viewModel: FolderViewModel = viewModel(),
+fun FileScreen(path: String,
+               onNavigation: (NavKey) -> Unit,
+               viewModel: FileScreenViewModel = viewModel(),
                  ){
 
 
     Column {
         FloderViewMode()
         LaunchedEffect(path) {
-            viewModel.loadFiles(path)
-        }
-        FileList(path,onNavigation,viewModel.files,)
+              viewModel.loadFiles(path)
+                  }
+        FileList(onNavigation,viewModel.files,viewModel.isLoading)
 
     }
 
