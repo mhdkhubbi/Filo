@@ -72,12 +72,5 @@ class FileScreenViewModel : ViewModel() {
             }
         }
     }
-    fun loadFilesAndThenNavigate(path: String, onReady: () -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            loadFiles(path)   // your existing function
-            withContext(Dispatchers.Main) {
-                onReady()
-            }
-        }
-    }
+
 }
