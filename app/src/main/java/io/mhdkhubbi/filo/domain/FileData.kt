@@ -6,7 +6,8 @@ data class FsEntry(
     val isDirectory: Boolean,
     val type: FileType,
     val sizeBytes: Long,
-    val itemCount: Int
+    val itemCount: Int,
+    val sizeMega:String
 )
 
 enum class FileType {
