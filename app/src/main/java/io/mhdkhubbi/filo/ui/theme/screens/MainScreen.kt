@@ -39,7 +39,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     HomeScreen(onNavigation = onNavigation)
                 }
                 entry<FolderScreen> { entry ->
-                    ContentScreen(path = entry.path, onNavigation = onNavigation)
+                    FileScreen(path = entry.path, onNavigation = onNavigation)
                 }
             }
 
