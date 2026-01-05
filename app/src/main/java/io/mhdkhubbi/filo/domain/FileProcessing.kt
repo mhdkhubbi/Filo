@@ -26,7 +26,12 @@ fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> 
                 } else {
                     entry.toFile().length()
                 },
-                itemCount = getItemCount(entry)
+                itemCount = getItemCount(entry),
+                sizeMega =formatSize( if (entry.isDirectory()) {
+                    cachedSize ?: 0L   // use cached size if available
+                } else {
+                    entry.toFile().length()
+                })
             )
         }
 }
