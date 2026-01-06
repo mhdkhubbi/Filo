@@ -29,7 +29,7 @@ fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> 
                 type = detectType(entry),
                 sizeBytes = sizeBytes,
                 itemCount = getItemCount(entry),
-                sizeMega = formatSize(sizeBytes) // always format from current sizeBytes
+                sizeMega = formatSize(sizeBytes)
             )
         }
 }
