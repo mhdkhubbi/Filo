@@ -24,7 +24,7 @@ class FileScreenViewModel : ViewModel() {
     private val sizeCache = mutableMapOf<String, Long>()
     var isLoading by mutableStateOf(false)
         private set
-    var fileName by mutableStateOf("")
+    var directoryName by mutableStateOf("")
         private set
 
     fun loadFiles(path: String) {
@@ -52,7 +52,7 @@ class FileScreenViewModel : ViewModel() {
                 _files.clear()
                 _files.addAll(withSizes)
                 isLoading = false // replace content, keep order
-                fileName=if(path=="/storage/emulated/0") "Internal Storage"
+                directoryName=if(path=="/storage/emulated/0") "Internal Storage"
                 else path.substringAfterLast("/")
             }
 
