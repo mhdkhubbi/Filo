@@ -1,4 +1,3 @@
-
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +24,9 @@ class FileScreenViewModel : ViewModel() {
     private val sizeCache = mutableMapOf<String, Long>()
     var isLoading by mutableStateOf(false)
         private set
+    var fileName by mutableStateOf("")
+        private set
+
     fun loadFiles(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
             isLoading = true
@@ -49,7 +51,9 @@ class FileScreenViewModel : ViewModel() {
             withContext(Dispatchers.Main) {
                 _files.clear()
                 _files.addAll(withSizes)
-                isLoading = false// replace content, keep order
+                isLoading = false // replace content, keep order
+                fileName=if(path=="/storage/emulated/0") "Internal Storage"
+                else path.substringAfterLast("/")
             }
 
             // Compute missing folder sizes asynchronously, update in place
