@@ -17,12 +17,12 @@ import androidx.compose.ui.unit.sp
 import io.mhdkhubbi.filo.ui.theme.Gray400
 
 @Composable
-fun FileRow(nameFile: String) {
+fun FileRow(directoryFile: String) {
 
     Row(Modifier.fillMaxWidth()) {
 
         Text(
-            nameFile,
+            directoryFile,
             modifier = Modifier.padding(start = 10.dp, top = 10.dp),
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp,
