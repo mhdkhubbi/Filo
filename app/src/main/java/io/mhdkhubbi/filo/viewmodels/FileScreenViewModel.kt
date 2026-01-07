@@ -1,16 +1,29 @@
+
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import io.mhdkhubbi.filo.domain.FsEntry
+import io.mhdkhubbi.filo.domain.copyWithProgress
+import io.mhdkhubbi.filo.domain.deleteFileOrDirectory
 import io.mhdkhubbi.filo.domain.formatSize
 import io.mhdkhubbi.filo.domain.getFolderSize
 import io.mhdkhubbi.filo.domain.listFilesInLight
+import io.mhdkhubbi.filo.domain.moveWithProgress
+import io.mhdkhubbi.filo.ui.theme.screens.FileScreen
+import io.mhdkhubbi.filo.ui.theme.screens.HomeScreen
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.name
 
@@ -22,13 +35,197 @@ class FileScreenViewModel : ViewModel() {
 
     // Cache sizes so they don’t reset to 0 when you revisit
     private val sizeCache = mutableMapOf<String, Long>()
+    var selectedPaths by mutableStateOf(setOf<String>())
+        private set
+    private var operationPaths: Set<String> = emptySet()
+    var pendingOperation by mutableStateOf<String?>(null)
+        private set
+    var fileName by mutableStateOf("")
+        private set
+    val isShown: Boolean
+        get() = selectedPaths.isNotEmpty()
     var isLoading by mutableStateOf(false)
         private set
-    var directoryName by mutableStateOf("")
+    var showDialog by mutableStateOf(false)
+    var isProcessing by mutableStateOf(false)
+    var progress by mutableFloatStateOf(0f)
+
+    var currentPath by mutableStateOf("/storage/emulated/0")
         private set
 
+    var destinationPath by mutableStateOf<String?>(null)
+    var shouldResetNavigation by mutableStateOf(false)
+        private set
+
+
+    fun selectAll(files: List<FsEntry>) {
+        selectedPaths = files.map { it.fullPath }.toSet()
+    }
+    fun clearSelection() {
+        selectedPaths = emptySet()
+    }
+    fun toggleSelection(path: String) {
+        selectedPaths = if (selectedPaths.contains(path)) {
+            selectedPaths - path
+        } else {
+            selectedPaths + path
+        }
+    }
+
+    fun deleteSelected() {
+        viewModelScope.launch(Dispatchers.IO) {
+            isProcessing = true
+            progress = 0f
+            val total = selectedPaths.size
+            var done = 0
+
+            selectedPaths.forEach { path ->
+                deleteFileOrDirectory(Path(path))
+                done++
+                val overall = done.toFloat() / total
+                viewModelScope.launch(Dispatchers.Main) {
+                    progress = overall
+                }
+            }
+
+            clearSelection()
+            loadFiles(currentPath)
+            isProcessing = false
+        }
+    }
+    fun onCopy() {
+        pendingOperation = "copy"
+        operationPaths = selectedPaths.toSet()
+        selectedPaths = emptySet()
+    }
+    fun onMove() {
+        pendingOperation = "move"
+        operationPaths = selectedPaths.toSet()
+        selectedPaths = emptySet()
+    }
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    fun executePendingOperation() {
+        println("EXECUTE: pending=$pendingOperation dest=$destinationPath selected=${selectedPaths.size}")
+
+        val dest = destinationPath ?: return
+
+        when (pendingOperation) {
+            "copy" -> copySelectedWithProgress(Path(dest))
+            "move" -> moveSelectedWithProgress(Path(dest))
+        }
+
+        pendingOperation = null
+        destinationPath = null
+        clearSelection()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    fun copySelectedWithProgress(targetDir: Path) {
+        viewModelScope.launch(Dispatchers.IO) {
+
+            try {
+                isProcessing = true
+                progress = 0f
+
+                val totalItems = operationPaths.size
+                var completedItems = 0
+
+                for (src in operationPaths) {
+                    val srcPath = Path(src)
+                    val destPath = targetDir.resolve(srcPath.name)
+
+                    copyWithProgress(srcPath, destPath) { copied, total ->
+                        val itemProgress = copied.toFloat() / total.toFloat()
+                        val overall = (completedItems + itemProgress) / totalItems
+                        viewModelScope.launch(Dispatchers.Main) {
+                            progress = overall
+                        }
+
+                    }
+
+                    completedItems++
+                }
+
+//                withContext(Dispatchers.Main) {
+//                    progress = 1f
+//                }
+                withContext(Dispatchers.Main) {
+                    shouldResetNavigation = true
+                }
+
+                loadFiles(currentPath)
+
+            } catch (e: Exception) {
+                println("PASTE CRASH: ${e.stackTraceToString()}")
+            } finally {
+                isProcessing = false
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    fun moveSelectedWithProgress(targetDir: Path) {
+        viewModelScope.launch(Dispatchers.IO) {
+
+            try {
+                isProcessing = true
+                progress = 0f
+
+                val totalItems = operationPaths.size
+                var completedItems = 0
+
+                for (src in operationPaths) {
+                    val srcPath = Path(src)
+                    val destPath = targetDir.resolve(srcPath.name)
+
+                    moveWithProgress(srcPath, destPath) { copied, total ->
+                        val itemProgress = copied.toFloat() / total.toFloat()
+                        val overall = (completedItems + itemProgress) / totalItems
+
+                        // Update UI on main thread
+                        viewModelScope.launch(Dispatchers.Main) {
+                            progress = overall
+                        }
+                    }
+
+                    completedItems++
+                }
+
+
+//                withContext(Dispatchers.Main) {
+//                    progress = 1f
+//                }
+                withContext(Dispatchers.Main) {
+                    shouldResetNavigation = true
+                }
+                loadFiles(currentPath)
+
+            } catch (e: Exception) {
+                println("MOVE CRASH: ${e.stackTraceToString()}")
+
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isProcessing = false
+                }
+            }
+        }
+    }
+
+    fun cancelPendingOperation() {
+        pendingOperation = null
+        destinationPath = null
+    }
+    fun clearNavigationResetFlag() {
+        shouldResetNavigation = false
+    }
+    fun resetNavigationTo(path: String, backStack: NavBackStack<NavKey>) {
+        backStack.clear()
+        backStack.add(HomeScreen)
+        backStack.add(FileScreen(path))
+    }
     fun loadFiles(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            currentPath = path
             isLoading = true
             // Lightweight listing without recursive sizes
             val base = listFilesInLight(path, sizeCache)
@@ -52,7 +249,7 @@ class FileScreenViewModel : ViewModel() {
                 _files.clear()
                 _files.addAll(withSizes)
                 isLoading = false // replace content, keep order
-                directoryName=if(path=="/storage/emulated/0") "Internal Storage"
+                fileName=if(path=="/storage/emulated/0") "Internal Storage"
                 else path.substringAfterLast("/")
             }
 
