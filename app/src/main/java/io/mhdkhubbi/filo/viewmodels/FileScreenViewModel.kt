@@ -1,4 +1,3 @@
-
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
@@ -21,6 +20,7 @@ import io.mhdkhubbi.filo.ui.theme.screens.FileScreen
 import io.mhdkhubbi.filo.ui.theme.screens.HomeScreen
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
@@ -57,18 +57,50 @@ class FileScreenViewModel : ViewModel() {
     var shouldResetNavigation by mutableStateOf(false)
         private set
 
+    fun onCopyItem(path: String) {
+        pendingOperation = "copy"
+        operationPaths = setOf(path)
+    }
+
+    fun onMoveItem(path: String) {
+        pendingOperation = "move"
+        operationPaths = setOf(path)
+    }
 
     fun selectAll(files: List<FsEntry>) {
         selectedPaths = files.map { it.fullPath }.toSet()
     }
+
     fun clearSelection() {
         selectedPaths = emptySet()
     }
+
     fun toggleSelection(path: String) {
         selectedPaths = if (selectedPaths.contains(path)) {
             selectedPaths - path
         } else {
             selectedPaths + path
+        }
+    }
+
+    fun deleteOne(path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            isProcessing = true
+            progress = 0f
+
+            deleteFileOrDirectory(Path(path))
+
+            // Animate progress to 100%
+            for (i in 1..10) {
+                delay(10)
+                val p = i / 10f
+                viewModelScope.launch(Dispatchers.Main) {
+                    progress = p
+                }
+            }
+
+            loadFiles(currentPath)
+            isProcessing = false
         }
     }
 
@@ -93,21 +125,25 @@ class FileScreenViewModel : ViewModel() {
             isProcessing = false
         }
     }
+
     fun onCopy() {
         pendingOperation = "copy"
         operationPaths = selectedPaths.toSet()
         selectedPaths = emptySet()
     }
+
     fun onMove() {
         pendingOperation = "move"
         operationPaths = selectedPaths.toSet()
         selectedPaths = emptySet()
     }
+
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun executePendingOperation() {
-        println("EXECUTE: pending=$pendingOperation dest=$destinationPath selected=${selectedPaths.size}")
+        //  println("EXECUTE: pending=$pendingOperation dest=$destinationPath selected=${selectedPaths.size}")
 
         val dest = destinationPath ?: return
+        println("EXECUTE: pending=$pendingOperation dest=$destinationPath selected=${selectedPaths.size}")
 
         when (pendingOperation) {
             "copy" -> copySelectedWithProgress(Path(dest))
@@ -129,11 +165,11 @@ class FileScreenViewModel : ViewModel() {
 
                 val totalItems = operationPaths.size
                 var completedItems = 0
-
+                println("opeaex ${operationPaths.size}")
                 for (src in operationPaths) {
                     val srcPath = Path(src)
                     val destPath = targetDir.resolve(srcPath.name)
-
+                    println("opeaex $srcPath     $destPath")
                     copyWithProgress(srcPath, destPath) { copied, total ->
                         val itemProgress = copied.toFloat() / total.toFloat()
                         val overall = (completedItems + itemProgress) / totalItems
@@ -215,14 +251,17 @@ class FileScreenViewModel : ViewModel() {
         pendingOperation = null
         destinationPath = null
     }
+
     fun clearNavigationResetFlag() {
         shouldResetNavigation = false
     }
+
     fun resetNavigationTo(path: String, backStack: NavBackStack<NavKey>) {
         backStack.clear()
         backStack.add(HomeScreen)
         backStack.add(FileScreen(path))
     }
+
     fun loadFiles(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
             currentPath = path
@@ -249,7 +288,7 @@ class FileScreenViewModel : ViewModel() {
                 _files.clear()
                 _files.addAll(withSizes)
                 isLoading = false // replace content, keep order
-                fileName=if(path=="/storage/emulated/0") "Internal Storage"
+                fileName = if (path == "/storage/emulated/0") "Internal Storage"
                 else path.substringAfterLast("/")
             }
 
