@@ -1,10 +1,10 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
 import FileScreenViewModel
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,13 +14,21 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import io.mhdkhubbi.filo.ui.theme.components.TopBar
 import io.mhdkhubbi.filo.viewmodels.HomeScreenViewModel
 
-
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, homeViewModel: HomeScreenViewModel = viewModel(),
-               fileViewModel: FileScreenViewModel = viewModel()
+fun AppRoot(modifier: Modifier = Modifier) {
+    val fileViewModel: FileScreenViewModel = viewModel()
+    val homeViewModel: HomeScreenViewModel=viewModel()
+    MainScreen(modifier,homeViewModel,fileViewModel = fileViewModel)
+
+}
+
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+@Composable
+fun MainScreen(modifier: Modifier = Modifier,homeViewModel: HomeScreenViewModel,
+               fileViewModel: FileScreenViewModel
 ) {
 
     val backStack = rememberNavBackStack(HomeScreen)
@@ -28,35 +36,49 @@ fun MainScreen(modifier: Modifier = Modifier, homeViewModel: HomeScreenViewModel
         backStack.add(it)
 
     }
-
-
+    val currentScreen = backStack.last()
+    val beforeHomeScreen = currentScreen is HomeScreen
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(top = 20.dp),
     ) {
-
-        TopBar()
-        Spacer(Modifier.height(20.dp))
         NavDisplay(
             backStack = backStack,
             onBack = {
                 if (fileViewModel.selectedPaths.isNotEmpty()) {
                     // First back press → clear selection only
                     fileViewModel.clearSelection()
+
                 } else {
                     // Second back press → navigate back
+
+                    if(beforeHomeScreen){
+                        fileViewModel.cancelPendingOperation()
+                      //  backStack.removeLastOrNull()
+                    }
                     backStack.removeLastOrNull()
                 }
             }
             ,
             entryProvider = entryProvider {
                 entry<HomeScreen> {
-                    HomeScreen(onNavigation = onNavigation)
+
+                        HomeScreen(onNavigation = onNavigation)
+
                 }
-                entry<FolderScreen> { entry ->
-                    FileScreen(path = entry.path, onNavigation = onNavigation,fileViewModel)
+                entry<FileScreen> { entry ->
+
+
+                        FileScreen(
+                            path = entry.path,
+                            onNavigation = onNavigation,
+                            viewModel = fileViewModel,
+                            backStack
+                        )
+
                 }
+
             }
 
         )
