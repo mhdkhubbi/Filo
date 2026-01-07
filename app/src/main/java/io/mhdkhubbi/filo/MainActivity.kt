@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import io.mhdkhubbi.filo.ui.theme.FiloTheme
-import io.mhdkhubbi.filo.ui.theme.screens.MainScreen
+import io.mhdkhubbi.filo.ui.theme.screens.AppRoot
 
 class MainActivity : ComponentActivity() {
 
@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
             FiloTheme {
 
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                        MainScreen(
+                        AppRoot(
                             Modifier.padding(innerPadding),
 
                         )
@@ -54,12 +54,13 @@ class MainActivity : ComponentActivity() {
 
 
 
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     FiloTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            MainScreen(Modifier.padding(innerPadding))
+            AppRoot(Modifier.padding(innerPadding))
         }
     }
 }
