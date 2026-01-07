@@ -1,11 +1,6 @@
 package io.mhdkhubbi.filo.domain
 
 
-// ------------------------------------------------------------
-//  HIGH‑PERFORMANCE FILE PROCESSING MODULE
-//  Fully optimized for Android file managers
-// ------------------------------------------------------------
-
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Environment
@@ -50,8 +45,8 @@ fun listFilesInLight(
                 isDirectory = isDir,
                 type = detectType(entry),
                 sizeBytes = sizeBytes,
-                itemCount = getItemCount(entry),       // lazy load
-                sizeMega = ""         // lazy format
+                itemCount = getItemCount(entry),
+                sizeMega = formatSize(sizeBytes)
             )
         }
         .toList()
