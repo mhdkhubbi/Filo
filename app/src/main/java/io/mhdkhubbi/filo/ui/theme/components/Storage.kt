@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
 import io.mhdkhubbi.filo.ui.theme.Gray100
 import io.mhdkhubbi.filo.ui.theme.Gray500
-import io.mhdkhubbi.filo.ui.theme.screens.FolderScreen
+import io.mhdkhubbi.filo.ui.theme.screens.FileScreen
 
 
 @Composable
@@ -41,7 +41,7 @@ fun StorageInfo(
         modifier = Modifier
             .padding(8.dp)
             .clickable(onClick = {
-                onNavigation(FolderScreen("/storage/emulated/0"))
+                onNavigation(FileScreen("/storage/emulated/0"))
             }),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
