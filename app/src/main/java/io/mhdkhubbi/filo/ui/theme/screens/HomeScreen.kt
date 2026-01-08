@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
 import io.mhdkhubbi.filo.ui.theme.components.StorageInfo
+import io.mhdkhubbi.filo.ui.theme.components.TopBar
 import io.mhdkhubbi.filo.viewmodels.HomeScreenViewModel
 
 @Composable
@@ -26,6 +27,7 @@ fun HomeScreen(
             .fillMaxSize()
 
     ) {
+        TopBar()
         StorageInfo(
             onNavigation = { onNavigation(FileScreen("/storage/emulated/0")) },
             { viewModel.getUsagePercent() },
