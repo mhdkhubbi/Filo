@@ -27,7 +27,7 @@ fun HomeScreen(
 
     ) {
         StorageInfo(
-            onNavigation = { onNavigation(FolderScreen("/storage/emulated/0")) },
+            onNavigation = { onNavigation(FileScreen("/storage/emulated/0")) },
             { viewModel.getUsagePercent() },
             viewModel.formateUsagePercent(),
             viewModel.getUsageLabel()
