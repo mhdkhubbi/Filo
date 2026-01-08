@@ -1,3 +1,5 @@
+
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
@@ -10,15 +12,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import io.mhdkhubbi.filo.domain.FsEntry
-import io.mhdkhubbi.filo.domain.copyWithProgress
-import io.mhdkhubbi.filo.domain.deleteFileOrDirectory
-import io.mhdkhubbi.filo.domain.formatSize
-import io.mhdkhubbi.filo.domain.getFolderSize
-import io.mhdkhubbi.filo.domain.listFilesInLight
-import io.mhdkhubbi.filo.domain.moveWithProgress
 import io.mhdkhubbi.filo.ui.theme.screens.FileScreen
 import io.mhdkhubbi.filo.ui.theme.screens.HomeScreen
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -83,6 +78,7 @@ class FileScreenViewModel : ViewModel() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun deleteOne(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
             isProcessing = true
@@ -104,6 +100,7 @@ class FileScreenViewModel : ViewModel() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun deleteSelected() {
         viewModelScope.launch(Dispatchers.IO) {
             isProcessing = true
@@ -262,6 +259,7 @@ class FileScreenViewModel : ViewModel() {
         backStack.add(FileScreen(path))
     }
 
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun loadFiles(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
             currentPath = path
