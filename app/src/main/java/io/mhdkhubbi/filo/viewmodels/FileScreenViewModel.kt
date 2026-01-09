@@ -51,6 +51,18 @@ class FileScreenViewModel : ViewModel() {
     var destinationPath by mutableStateOf<String?>(null)
     var shouldResetNavigation by mutableStateOf(false)
         private set
+    var createFolderDialog by mutableStateOf(false)
+    var folderNameToAdd by   mutableStateOf("")
+
+    fun folderNameChange(name:String){
+        folderNameToAdd=name
+    }
+    fun addingFolder(){
+        viewModelScope.launch(Dispatchers.Main) {
+            createFolderIfNotExists(Path(currentPath),folderNameToAdd)
+            loadFiles(currentPath)
+        }
+    }
 
     fun onCopyItem(path: String) {
         pendingOperation = "copy"
