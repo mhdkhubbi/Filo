@@ -23,7 +23,7 @@ import io.mhdkhubbi.filo.ui.theme.Gray400
 
 @Composable
 fun FileRow(directoryFile: String,
-            isShown:Boolean,
+            isShown:Boolean, modifier: Modifier = Modifier,
             onSelectAll: () -> Unit,
             onDeselectAll: () -> Unit,
             onCopy: () -> Unit,
