@@ -235,3 +235,17 @@ fun getFolderSize(path: Path): Long {
         0L
     }
 }
+fun createFolderIfNotExists(parent: Path, folderName: String): Boolean {
+    val newFolder = parent.resolve(folderName)
+
+    return try {
+        if (Files.exists(newFolder)) {
+            false // folder already exists
+        } else {
+            Files.createDirectories(newFolder)
+            true // folder created
+        }
+    } catch (_: Exception) {
+        false
+    }
+}
