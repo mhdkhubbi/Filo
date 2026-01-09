@@ -52,16 +52,26 @@ class FileScreenViewModel : ViewModel() {
     var shouldResetNavigation by mutableStateOf(false)
         private set
     var createFolderDialog by mutableStateOf(false)
-    var folderNameToAdd by   mutableStateOf("")
-
+    var folderNameToAdd by mutableStateOf("")
+    var wrongName by mutableStateOf("right")
+    
+    var deletedOne by mutableStateOf("")
     fun folderNameChange(name:String){
         folderNameToAdd=name
     }
     fun addingFolder(){
-        viewModelScope.launch(Dispatchers.Main) {
-            createFolderIfNotExists(Path(currentPath),folderNameToAdd)
-            loadFiles(currentPath)
-        }
+
+           val result= createFolderIfNotExists(Path(currentPath),folderNameToAdd)
+            if(result){
+                loadFiles(currentPath)
+                wrongName="right"
+                folderNameToAdd=""
+
+            }else{
+                wrongName="wrong"
+            }
+
+
     }
 
     fun onCopyItem(path: String) {
@@ -109,6 +119,7 @@ class FileScreenViewModel : ViewModel() {
 
             loadFiles(currentPath)
             isProcessing = false
+            deletedOne=""
         }
     }
 
