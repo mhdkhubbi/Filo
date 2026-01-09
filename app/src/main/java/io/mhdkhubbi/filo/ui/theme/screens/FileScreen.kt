@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.material3.AlertDialog
@@ -22,15 +21,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -116,8 +117,14 @@ fun FileScreen(
 
                     confirmButton = {
                         TextButton(onClick = {
-                            viewModel.createFolderDialog = false
-                            viewModel.addingFolder()
+                                viewModel.addingFolder()
+                            if(viewModel.wrongName=="right"){
+                                viewModel.createFolderDialog = false
+
+
+                            }
+
+
 
                         }) {
                             Text("Add")
@@ -136,7 +143,8 @@ fun FileScreen(
                     title = { Text("Adding Folder") },
                     text = {
                         FolderField(viewModel.folderNameToAdd,
-                            {viewModel.folderNameChange(it)})
+                            {viewModel.folderNameChange(it)},
+                            viewModel.wrongName)
                     }
                 )
             }
@@ -146,8 +154,14 @@ fun FileScreen(
 
                     confirmButton = {
                         TextButton(onClick = {
-                            viewModel.showDialog = false
-                            viewModel.deleteSelected()
+                            if(viewModel.deletedOne.isNotEmpty()){
+                                viewModel.deleteOne(viewModel.deletedOne)
+                                viewModel.showDialog = false
+
+                            }else {
+                                viewModel.showDialog = false
+                                viewModel.deleteSelected()
+                            }
                         }) {
                             Text("Delete")
                         }
@@ -166,6 +180,7 @@ fun FileScreen(
                     text = { Text("This action cannot be undone.") }
                 )
             }
+
             FileRow(
                 directoryFile = viewModel.fileName,
                 isShown = viewModel.isShown,
@@ -201,7 +216,9 @@ fun FileScreen(
                     onNavigation(HomeScreen)
                 },
                 onDelete = {
-                    viewModel.deleteOne(it)
+                    viewModel.showDialog=true
+                    viewModel.deletedOne=it
+
                 }
 
             )
@@ -214,14 +231,15 @@ fun FileScreen(
 @Composable
 fun FolderField(
     nameFolder: String="",
-    onValueChange: (String) -> Unit={}
+    onValueChange: (String) -> Unit={},
+    wrongName:String
 ) {
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 10.dp, end = 10.dp)
-            .height(40.dp)
+            .height(200.dp)
             .background(Gray100, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
@@ -231,27 +249,29 @@ fun FolderField(
         ) {
             Icon(
                 Icons.Default.AddBox,
-                contentDescription = "Search",
+                contentDescription = "Add folder",
                 tint = Gray500
             )
 
             Spacer(Modifier.width(8.dp))
-
-            BasicTextField(
+            Column{
+            TextField(
                 value = nameFolder,
                 onValueChange = {onValueChange(it)},
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                decorationBox = { innerTextField ->
-                    if (nameFolder.isEmpty()) {
-                        Text(
-                            "Add folder",
-                            color = Gray500
-                        )
-                    }
-                    innerTextField()
-                }
+                textStyle = TextStyle(color = Color.Black)
+                    ,
+
             )
+                if (wrongName=="wrong") {
+                    Text(
+                        text = "this name is already exist choose another name",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+            }
         }
     }
 }
