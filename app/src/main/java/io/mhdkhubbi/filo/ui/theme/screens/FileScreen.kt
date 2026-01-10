@@ -1,6 +1,6 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
-import FileScreenViewModel
+import FileScreenUiState
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import io.mhdkhubbi.filo.domain.FsEntry
 import io.mhdkhubbi.filo.ui.theme.Gray100
 import io.mhdkhubbi.filo.ui.theme.Gray500
 import io.mhdkhubbi.filo.ui.theme.components.FileList
@@ -47,48 +48,62 @@ import io.mhdkhubbi.filo.ui.theme.components.TopBar
 fun FileScreen(
     path: String,
     onNavigation: (NavKey) -> Unit,
-    viewModel: FileScreenViewModel,
-    backStack: NavBackStack<NavKey>
+    backStack: NavBackStack<NavKey>,
+    loadFiles: (String) -> Unit,
+    uiState: FileScreenUiState,
+    // keep callbacks for actions that mutate state
+    onFolderNameChange: (String) -> Unit,
+    onAddFolder: () -> Unit,
+    onExecutePendingOperation: () -> Unit,
+    onSelectAll: (List<FsEntry>) -> Unit,
+    onClearSelection: () -> Unit,
+    onToggleSelection: (String) -> Unit,
+    onCopyItem: (String) -> Unit,
+    onMoveItem: (String) -> Unit,
+    onDeleteOne: (String) -> Unit,
+    onDeleteSelect: () -> Unit,
+    onCopy: () -> Unit,
+    onMove: () -> Unit,
+    onShowDialogChange: (Boolean) -> Unit,
+    onCreateFolderDialogChange: (Boolean) -> Unit,
+    onResetNavigation: (String, NavBackStack<NavKey>) -> Unit,
+    onClearNavigationResetFlag: () -> Unit,
+    onChangedestinationPath:(String?)->Unit,
 ) {
-
     val currentScreen = backStack.last()
     val isInFileScreen = currentScreen is FileScreen
+
     LaunchedEffect(path) {
-        viewModel.loadFiles(path)
-
-        if (viewModel.pendingOperation != null) {
-            viewModel.destinationPath = path
+        loadFiles(path)
+        if (uiState.pendingOperation != null) {
+            onChangedestinationPath( path)
 
 
         }
-
     }
-    LaunchedEffect(viewModel.shouldResetNavigation) {
-        if (viewModel.shouldResetNavigation) {
-            viewModel.resetNavigationTo(viewModel.currentPath, backStack)
-            viewModel.clearNavigationResetFlag()
+
+    LaunchedEffect(uiState.shouldResetNavigation) {
+        if (uiState.shouldResetNavigation) {
+            onResetNavigation(uiState.currentPath, backStack)
+            onClearNavigationResetFlag()
         }
     }
-    Scaffold(floatingActionButton =  {
-        ExtendedFloatingActionButton(onClick = {
-            viewModel.createFolderDialog=true
-        }) { Text("Add Folder") }
 
-
-    }) {
-        Column {
-
-
-
+    Scaffold(
+        floatingActionButton = {
+            ExtendedFloatingActionButton(onClick = { onCreateFolderDialogChange(true) }) {
+                Text("Add Folder")
+            }
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
             TopBar()
             Spacer(Modifier.height(20.dp))
 
-            if (viewModel.pendingOperation != null && isInFileScreen) {
+            if (uiState.pendingOperation != null && isInFileScreen) {
                 Row {
                     Button(
-                        onClick = {
-                            viewModel.executePendingOperation()
-                        },
+                        onClick = { onExecutePendingOperation() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(10.dp)
@@ -97,7 +112,8 @@ fun FileScreen(
                     }
                 }
             }
-            if (viewModel.isProcessing) {
+
+            if (uiState.isProcessing) {
                 AlertDialog(
                     onDismissRequest = { },
                     confirmButton = {},
@@ -105,128 +121,100 @@ fun FileScreen(
                     title = { Text("Processing") },
                     text = {
                         LinearProgressIndicator(
-                            progress = { viewModel.progress.coerceIn(0.01f, 1f) },
+                            progress = { uiState.progress.coerceIn(0.01f, 1f) },
                             modifier = Modifier.fillMaxWidth().height(6.dp)
                         )
                     }
                 )
             }
-            if(viewModel.createFolderDialog){
-                AlertDialog(
-                    onDismissRequest = { viewModel.createFolderDialog = false },
 
+            if (uiState.createFolderDialog) {
+                AlertDialog(
+                    onDismissRequest = { onCreateFolderDialogChange(false) },
                     confirmButton = {
                         TextButton(onClick = {
-                                viewModel.addingFolder()
-                            if(viewModel.wrongName=="right"){
-                                viewModel.createFolderDialog = false
+                            onAddFolder()
 
-
-                            }
-
-
-
-                        }) {
-                            Text("Add")
-                        }
+                        }) { Text("Add") }
                     },
-
                     dismissButton = {
-                        TextButton(onClick = {
-                            viewModel.createFolderDialog = false
-                        }) {
+                        TextButton(onClick = { onCreateFolderDialogChange(false) }) {
                             Text("Cancel")
-
                         }
                     },
-
                     title = { Text("Adding Folder") },
                     text = {
-                        FolderField(viewModel.folderNameToAdd,
-                            {viewModel.folderNameChange(it)},
-                            viewModel.wrongName)
+                        FolderField(
+                            uiState.folderNameToAdd,
+                            onFolderNameChange,
+                            uiState.wrongName
+                        )
                     }
                 )
             }
-            if (viewModel.showDialog) {
-                AlertDialog(
-                    onDismissRequest = { viewModel.showDialog = false },
 
+            if (uiState.showDialog) {
+                AlertDialog(
+                    onDismissRequest = { onShowDialogChange(false) },
                     confirmButton = {
                         TextButton(onClick = {
-                            if(viewModel.deletedOne.isNotEmpty()){
-                                viewModel.deleteOne(viewModel.deletedOne)
-                                viewModel.showDialog = false
-
-                            }else {
-                                viewModel.showDialog = false
-                                viewModel.deleteSelected()
+                            if (uiState.deletedOne.isNotEmpty()) {
+                                onDeleteOne(uiState.deletedOne)
+                                onShowDialogChange(false)
+                            } else {
+                                onShowDialogChange(false)
+                                onDeleteSelect()
                             }
-                        }) {
-                            Text("Delete")
-                        }
+                        }) { Text("Delete") }
                     },
-
                     dismissButton = {
-                        TextButton(onClick = {
-                            viewModel.showDialog = false
-                        }) {
+                        TextButton(onClick = { onShowDialogChange(false) }) {
                             Text("Cancel")
-
                         }
                     },
-
                     title = { Text("Delete selected items?") },
                     text = { Text("This action cannot be undone.") }
                 )
             }
 
             FileRow(
-                directoryFile = viewModel.fileName,
-                isShown = viewModel.isShown,
-                onSelectAll = { viewModel.selectAll(viewModel.files) },
-                onDeselectAll = { viewModel.clearSelection() },
+                directoryFile = uiState.fileName,
+                isShown = uiState.selectedPaths.isNotEmpty(),
+                onSelectAll = { onSelectAll(uiState.files) },
+                onDeselectAll = { onClearSelection() },
                 onCopy = {
-                    viewModel.onCopy()
+                    onCopy()
                     onNavigation(HomeScreen)
-
                 },
                 onMove = {
-                    viewModel.onMove()
+                    onMove()
                     onNavigation(HomeScreen)
                 },
-                onDelete = {
-                    viewModel.showDialog = true
-                }
+                onDelete = { onShowDialogChange(true) }
             )
 
             FileList(
-                onNavigation,
-                files = viewModel.files,
-                isLoading = viewModel.isLoading,
-                selectedPaths = viewModel.selectedPaths,
-                toggleSelection = { path -> viewModel.toggleSelection(path) },
-                clearSelection = { viewModel.clearSelection() },
+                onNavigation = onNavigation,
+                files = uiState.files,
+                isLoading = uiState.isLoading,
+                selectedPaths = uiState.selectedPaths,
+                toggleSelection = onToggleSelection,
+                clearSelection = onClearSelection,
                 onCopy = {
-                    viewModel.onCopyItem(it)
+                    onCopyItem(it)
                     onNavigation(HomeScreen)
                 },
                 onMove = {
-                    viewModel.onMoveItem(it)
+                    onMoveItem(it)
                     onNavigation(HomeScreen)
                 },
                 onDelete = {
-                    viewModel.showDialog=true
-                    viewModel.deletedOne=it
-
+                    onShowDialogChange(true)
+                    onDeleteOne(it)
                 }
-
             )
-
         }
     }
-
-
 }
 @Composable
 fun FolderField(
@@ -255,14 +243,14 @@ fun FolderField(
 
             Spacer(Modifier.width(8.dp))
             Column{
-            TextField(
-                value = nameFolder,
-                onValueChange = {onValueChange(it)},
-                singleLine = true,
-                textStyle = TextStyle(color = Color.Black)
+                TextField(
+                    value = nameFolder,
+                    onValueChange = {onValueChange(it)},
+                    singleLine = true,
+                    textStyle = TextStyle(color = Color.Black)
                     ,
 
-            )
+                    )
                 if (wrongName=="wrong") {
                     Text(
                         text = "this name is already exist choose another name",
@@ -276,4 +264,193 @@ fun FolderField(
     }
 }
 
+
+
+//@Composable
+//fun FileScreen(
+//    path: String,
+//    onNavigation: (NavKey) -> Unit,
+//    viewModel: FileScreenViewModel,
+//    backStack: NavBackStack<NavKey>,
+//    loadFiles:(String)->Unit,
+//
+//) {
+//
+//    val currentScreen = backStack.last()
+//    val isInFileScreen = currentScreen is FileScreen
+//    LaunchedEffect(path) {
+//       loadFiles(path)
+//
+//        if (viewModel.pendingOperation != null) {
+//            viewModel.destinationPath = path
+//
+//
+//        }
+//
+//    }
+//    LaunchedEffect(viewModel.shouldResetNavigation) {
+//        if (viewModel.shouldResetNavigation) {
+//            viewModel.resetNavigationTo(viewModel.currentPath, backStack)
+//            viewModel.clearNavigationResetFlag()
+//        }
+//    }
+//    Scaffold(floatingActionButton =  {
+//        ExtendedFloatingActionButton(onClick = {
+//            viewModel.createFolderDialog=true
+//        }) { Text("Add Folder") }
+//
+//
+//    }) {
+//        Column {
+//
+//
+//
+//            TopBar()
+//            Spacer(Modifier.height(20.dp))
+//
+//            if (viewModel.pendingOperation != null && isInFileScreen) {
+//                Row {
+//                    Button(
+//                        onClick = {
+//                            viewModel.executePendingOperation()
+//                        },
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(10.dp)
+//                    ) {
+//                        Text("Paste here")
+//                    }
+//                }
+//            }
+//            if (viewModel.isProcessing) {
+//                AlertDialog(
+//                    onDismissRequest = { },
+//                    confirmButton = {},
+//                    dismissButton = {},
+//                    title = { Text("Processing") },
+//                    text = {
+//                        LinearProgressIndicator(
+//                            progress = { viewModel.progress.coerceIn(0.01f, 1f) },
+//                            modifier = Modifier.fillMaxWidth().height(6.dp)
+//                        )
+//                    }
+//                )
+//            }
+//            if(viewModel.createFolderDialog){
+//                AlertDialog(
+//                    onDismissRequest = { viewModel.createFolderDialog = false },
+//
+//                    confirmButton = {
+//                        TextButton(onClick = {
+//                                viewModel.addingFolder()
+//                            if(viewModel.wrongName=="right"){
+//                                viewModel.createFolderDialog = false
+//
+//
+//                            }
+//
+//
+//
+//                        }) {
+//                            Text("Add")
+//                        }
+//                    },
+//
+//                    dismissButton = {
+//                        TextButton(onClick = {
+//                            viewModel.createFolderDialog = false
+//                        }) {
+//                            Text("Cancel")
+//
+//                        }
+//                    },
+//
+//                    title = { Text("Adding Folder") },
+//                    text = {
+//                        FolderField(viewModel.folderNameToAdd,
+//                            {viewModel.folderNameChange(it)},
+//                            viewModel.wrongName)
+//                    }
+//                )
+//            }
+//            if (viewModel.showDialog) {
+//                AlertDialog(
+//                    onDismissRequest = { viewModel.showDialog = false },
+//
+//                    confirmButton = {
+//                        TextButton(onClick = {
+//                            if(viewModel.deletedOne.isNotEmpty()){
+//                                viewModel.deleteOne(viewModel.deletedOne)
+//                                viewModel.showDialog = false
+//
+//                            }else {
+//                                viewModel.showDialog = false
+//                                viewModel.deleteSelected()
+//                            }
+//                        }) {
+//                            Text("Delete")
+//                        }
+//                    },
+//
+//                    dismissButton = {
+//                        TextButton(onClick = {
+//                            viewModel.showDialog = false
+//                        }) {
+//                            Text("Cancel")
+//
+//                        }
+//                    },
+//
+//                    title = { Text("Delete selected items?") },
+//                    text = { Text("This action cannot be undone.") }
+//                )
+//            }
+//
+//            FileRow(
+//                directoryFile = viewModel.fileName,
+//                isShown = viewModel.isShown,
+//                onSelectAll = { viewModel.selectAll(viewModel.files) },
+//                onDeselectAll = { viewModel.clearSelection() },
+//                onCopy = {
+//                    viewModel.onCopy()
+//                    onNavigation(HomeScreen)
+//
+//                },
+//                onMove = {
+//                    viewModel.onMove()
+//                    onNavigation(HomeScreen)
+//                },
+//                onDelete = {
+//                    viewModel.showDialog = true
+//                }
+//            )
+//
+//            FileList(
+//                onNavigation,
+//                files = viewModel.files,
+//                isLoading = viewModel.isLoading,
+//                selectedPaths = viewModel.selectedPaths,
+//                toggleSelection = { path -> viewModel.toggleSelection(path) },
+//                clearSelection = { viewModel.clearSelection() },
+//                onCopy = {
+//                    viewModel.onCopyItem(it)
+//                    onNavigation(HomeScreen)
+//                },
+//                onMove = {
+//                    viewModel.onMoveItem(it)
+//                    onNavigation(HomeScreen)
+//                },
+//                onDelete = {
+//                    viewModel.showDialog=true
+//                    viewModel.deletedOne=it
+//
+//                }
+//
+//            )
+//
+//        }
+//    }
+//
+//
+//}
 
