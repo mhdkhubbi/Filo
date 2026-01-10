@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.ui)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -72,4 +73,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
 
     implementation(libs.kotlinx.serialization.json)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
 }
