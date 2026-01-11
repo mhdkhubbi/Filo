@@ -68,7 +68,8 @@ fun FileScreen(
     onCreateFolderDialogChange: (Boolean) -> Unit,
     onResetNavigation: (String, NavBackStack<NavKey>) -> Unit,
     onClearNavigationResetFlag: () -> Unit,
-    onChangedestinationPath:(String?)->Unit,
+    onChangeDestinationPath:(String?)->Unit,
+    modifier: Modifier=Modifier
 ) {
     val currentScreen = backStack.last()
     val isInFileScreen = currentScreen is FileScreen
@@ -76,7 +77,7 @@ fun FileScreen(
     LaunchedEffect(path) {
         loadFiles(path)
         if (uiState.pendingOperation != null) {
-            onChangedestinationPath( path)
+            onChangeDestinationPath( path)
 
 
         }
@@ -266,191 +267,5 @@ fun FolderField(
 
 
 
-//@Composable
-//fun FileScreen(
-//    path: String,
-//    onNavigation: (NavKey) -> Unit,
-//    viewModel: FileScreenViewModel,
-//    backStack: NavBackStack<NavKey>,
-//    loadFiles:(String)->Unit,
-//
-//) {
-//
-//    val currentScreen = backStack.last()
-//    val isInFileScreen = currentScreen is FileScreen
-//    LaunchedEffect(path) {
-//       loadFiles(path)
-//
-//        if (viewModel.pendingOperation != null) {
-//            viewModel.destinationPath = path
-//
-//
-//        }
-//
-//    }
-//    LaunchedEffect(viewModel.shouldResetNavigation) {
-//        if (viewModel.shouldResetNavigation) {
-//            viewModel.resetNavigationTo(viewModel.currentPath, backStack)
-//            viewModel.clearNavigationResetFlag()
-//        }
-//    }
-//    Scaffold(floatingActionButton =  {
-//        ExtendedFloatingActionButton(onClick = {
-//            viewModel.createFolderDialog=true
-//        }) { Text("Add Folder") }
-//
-//
-//    }) {
-//        Column {
-//
-//
-//
-//            TopBar()
-//            Spacer(Modifier.height(20.dp))
-//
-//            if (viewModel.pendingOperation != null && isInFileScreen) {
-//                Row {
-//                    Button(
-//                        onClick = {
-//                            viewModel.executePendingOperation()
-//                        },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(10.dp)
-//                    ) {
-//                        Text("Paste here")
-//                    }
-//                }
-//            }
-//            if (viewModel.isProcessing) {
-//                AlertDialog(
-//                    onDismissRequest = { },
-//                    confirmButton = {},
-//                    dismissButton = {},
-//                    title = { Text("Processing") },
-//                    text = {
-//                        LinearProgressIndicator(
-//                            progress = { viewModel.progress.coerceIn(0.01f, 1f) },
-//                            modifier = Modifier.fillMaxWidth().height(6.dp)
-//                        )
-//                    }
-//                )
-//            }
-//            if(viewModel.createFolderDialog){
-//                AlertDialog(
-//                    onDismissRequest = { viewModel.createFolderDialog = false },
-//
-//                    confirmButton = {
-//                        TextButton(onClick = {
-//                                viewModel.addingFolder()
-//                            if(viewModel.wrongName=="right"){
-//                                viewModel.createFolderDialog = false
-//
-//
-//                            }
-//
-//
-//
-//                        }) {
-//                            Text("Add")
-//                        }
-//                    },
-//
-//                    dismissButton = {
-//                        TextButton(onClick = {
-//                            viewModel.createFolderDialog = false
-//                        }) {
-//                            Text("Cancel")
-//
-//                        }
-//                    },
-//
-//                    title = { Text("Adding Folder") },
-//                    text = {
-//                        FolderField(viewModel.folderNameToAdd,
-//                            {viewModel.folderNameChange(it)},
-//                            viewModel.wrongName)
-//                    }
-//                )
-//            }
-//            if (viewModel.showDialog) {
-//                AlertDialog(
-//                    onDismissRequest = { viewModel.showDialog = false },
-//
-//                    confirmButton = {
-//                        TextButton(onClick = {
-//                            if(viewModel.deletedOne.isNotEmpty()){
-//                                viewModel.deleteOne(viewModel.deletedOne)
-//                                viewModel.showDialog = false
-//
-//                            }else {
-//                                viewModel.showDialog = false
-//                                viewModel.deleteSelected()
-//                            }
-//                        }) {
-//                            Text("Delete")
-//                        }
-//                    },
-//
-//                    dismissButton = {
-//                        TextButton(onClick = {
-//                            viewModel.showDialog = false
-//                        }) {
-//                            Text("Cancel")
-//
-//                        }
-//                    },
-//
-//                    title = { Text("Delete selected items?") },
-//                    text = { Text("This action cannot be undone.") }
-//                )
-//            }
-//
-//            FileRow(
-//                directoryFile = viewModel.fileName,
-//                isShown = viewModel.isShown,
-//                onSelectAll = { viewModel.selectAll(viewModel.files) },
-//                onDeselectAll = { viewModel.clearSelection() },
-//                onCopy = {
-//                    viewModel.onCopy()
-//                    onNavigation(HomeScreen)
-//
-//                },
-//                onMove = {
-//                    viewModel.onMove()
-//                    onNavigation(HomeScreen)
-//                },
-//                onDelete = {
-//                    viewModel.showDialog = true
-//                }
-//            )
-//
-//            FileList(
-//                onNavigation,
-//                files = viewModel.files,
-//                isLoading = viewModel.isLoading,
-//                selectedPaths = viewModel.selectedPaths,
-//                toggleSelection = { path -> viewModel.toggleSelection(path) },
-//                clearSelection = { viewModel.clearSelection() },
-//                onCopy = {
-//                    viewModel.onCopyItem(it)
-//                    onNavigation(HomeScreen)
-//                },
-//                onMove = {
-//                    viewModel.onMoveItem(it)
-//                    onNavigation(HomeScreen)
-//                },
-//                onDelete = {
-//                    viewModel.showDialog=true
-//                    viewModel.deletedOne=it
-//
-//                }
-//
-//            )
-//
-//        }
-//    }
-//
-//
-//}
+
 
