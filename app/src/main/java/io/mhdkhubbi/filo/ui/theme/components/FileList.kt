@@ -274,6 +274,8 @@ fun FileIcon(fileName: FsEntry) {
                 .size(52.dp)
 
         )
+
+
     }
 
 
