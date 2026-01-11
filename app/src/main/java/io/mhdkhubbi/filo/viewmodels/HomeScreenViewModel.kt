@@ -9,7 +9,7 @@ import io.mhdkhubbi.filo.domain.StorageStats
 
 
 class HomeScreenViewModel : ViewModel() {
-    private val stats: StorageStats = getStorageStats()
+    val stats: StorageStats = getStorageStats()
     val usedBytes: Long = stats.usedBytes
     val totalBytes: Long = stats.totalBytes
 
