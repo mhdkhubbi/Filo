@@ -24,13 +24,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation3.runtime.NavKey
 import io.mhdkhubbi.filo.ui.theme.Gray100
 
+
 @Composable
-fun Categories(modifier: Modifier = Modifier) {
+fun Categories(onNavigation:(NavKey)->Unit, modifier: Modifier = Modifier) {
 
 
     Column(
@@ -59,7 +60,9 @@ fun Categories(modifier: Modifier = Modifier) {
                     width = 1.dp,
                     color = Gray100,
                     shape = RoundedCornerShape(12.dp)
-                ).clickable {},
+                ).clickable {
+              //      onNavigation(MediaScreen)
+                },
                 contentAlignment = Alignment.Center) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -175,8 +178,3 @@ fun Categories(modifier: Modifier = Modifier) {
 }
 
 
-@Preview
-@Composable
-private fun CategoriesPreView() {
-    Categories()
-}
