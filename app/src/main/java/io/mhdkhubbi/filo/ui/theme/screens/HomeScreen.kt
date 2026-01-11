@@ -1,6 +1,7 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
 
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,12 +21,6 @@ fun HomeScreen(
     onNavigation: (NavKey) -> Unit,
     viewModel: HomeScreenViewModel = viewModel()
 ) {
-//    val context = LocalContext.current
-//    val viewModelMedia = remember { MediaFoldersViewModel(context) }
-//    val paths by viewModelMedia.paths.collectAsState()
-//    LaunchedEffect(Unit) {
-//        viewModelMedia.load(MediaType.IMAGES)
-//    }
 
 
     Column(
@@ -41,12 +36,8 @@ fun HomeScreen(
             viewModel.getUsageLabel()
         )
         Spacer(Modifier.height(17.dp))
-       // println("opeas ${paths.first()}")
-//        Categories(
-//            onNavigation = { onNavigation(FileScreen(paths.first())) },
-//            path = paths.first(),
-//
-//        )
+
+
 
 
 
