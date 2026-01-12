@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Filo" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Filo" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:layoutDirection">ltr</item>
+        <!-- Use the color we defined above -->
+<!--        <item name="android:windowBackground">@color/app_background</item>-->
+
+<!--        &lt;!&ndash; This prevents the system from showing a blank white screen-->
+<!--             while the Compose engine is warming up &ndash;&gt;-->
+<!--        <item name="android:windowDisablePreview">false</item>-->
+
+<!--        &lt;!&ndash; Optional: Ensure the status bar matches your theme during splash &ndash;&gt;-->
+<!--        <item name="android:windowTranslucentStatus">true</item>-->
+    </style>
+
 </resources>
