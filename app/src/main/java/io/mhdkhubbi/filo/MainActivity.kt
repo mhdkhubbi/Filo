@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import io.mhdkhubbi.filo.ui.theme.FiloTheme
 import io.mhdkhubbi.filo.ui.theme.screens.MainScreen
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
@@ -51,7 +53,9 @@ class MainActivity : ComponentActivity() {
                     showUI = true
                 }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize()
+
+                ) { innerPadding ->
                     if (showUI) {
                         MainScreen(Modifier.padding(innerPadding))
                     }
