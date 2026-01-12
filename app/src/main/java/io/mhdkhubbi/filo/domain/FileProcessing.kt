@@ -6,10 +6,10 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import io.mhdkhubbi.filo.domain.FileEntry
 import io.mhdkhubbi.filo.domain.FileType
-import io.mhdkhubbi.filo.domain.FsEntry
 import io.mhdkhubbi.filo.domain.MediaType
-import io.mhdkhubbi.filo.domain.StorageStats
+import io.mhdkhubbi.filo.domain.StorageVolume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -27,7 +27,7 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 fun listFiles(
     path: String,
-): List<FsEntry> {
+): List<FileEntry> {
     val root = Path.of(path)
 
     return Files.newDirectoryStream(root).use { stream ->
@@ -39,21 +39,21 @@ fun listFiles(
                 val sizeBytes = if (isDir) 0L else File(full).length()
                 val sizeMega = if (isDir) "--" else formatSize(sizeBytes)
 
-                FsEntry(
+                FileEntry(
                     name = entry.fileName.toString(),
-                    fullPath = full,
-                    isDirectory = isDir,
+                    path = full,
+                    isFolder = isDir,
                     type = detectType(entry),
                     sizeBytes = sizeBytes,
-                    itemCount =if (isDir) countVisibleItems(full) else 0,
-                    sizeMega = sizeMega
+                    childrenCount =if (isDir) countVisibleItems(full) else 0,
+                    formattedSize = sizeMega
                 )
             }
             .toList()
     }
 }
 
-fun getMediaFolders(context: Context, type: MediaType): List<FsEntry> {
+fun getMediaFolders(context: Context, type: MediaType): List<FileEntry> {
     val projection = arrayOf(
         MediaStore.MediaColumns.DATA
     )
@@ -109,14 +109,14 @@ fun getMediaFolders(context: Context, type: MediaType): List<FsEntry> {
         val totalSize = filesInFolder.sumOf { File(it).length() }
         val sizeMega = "%.2f MB".format(totalSize / 1024f / 1024f)
 
-        FsEntry(
+        FileEntry(
             name = folderName,
-            fullPath = folderPath,
-            isDirectory = true,
+            path = folderPath,
+            isFolder = true,
             type = FileType.FOLDER,
             sizeBytes = totalSize,
-            itemCount = filesInFolder.size,
-            sizeMega = sizeMega
+            childrenCount = filesInFolder.size,
+            formattedSize = sizeMega
         )
 
     }
@@ -288,8 +288,8 @@ fun getAdvertisedStorage(totalBytes: Long): String {
 }
 
 
-fun getStorageStats(context: Context): List<StorageStats> {
-    val result = mutableListOf<StorageStats>()
+fun getStorageStats(context: Context): List<StorageVolume> {
+    val result = mutableListOf<StorageVolume>()
 
     // --- Internal storage ---
     val internalPath = Environment.getExternalStorageDirectory().path
@@ -307,7 +307,7 @@ fun getStorageStats(context: Context): List<StorageStats> {
     return result
 }
 
-private fun calculateStats(path: String, isSdCard: Boolean): StorageStats {
+private fun calculateStats(path: String, isSdCard: Boolean): StorageVolume {
     val stat = StatFs(path)
     val blockSize = stat.blockSizeLong
     val totalBlocks = stat.blockCountLong
@@ -321,14 +321,14 @@ private fun calculateStats(path: String, isSdCard: Boolean): StorageStats {
         (usedBytes.toDouble() / totalBytes.toDouble() * 100).toInt()
     } else 0
 
-    return StorageStats(
+    return StorageVolume(
         usedBytes = usedBytes,
         totalBytes = totalBytes,
-        availableBytes = availableBytes,
-        percentUsed = percentUsed,
-        advertised = getAdvertisedStorage(totalBytes),
-        path = path,
-        isSdCard = isSdCard
+        freeBytes = availableBytes,
+        usagePercent = percentUsed,
+        totalCapacity = getAdvertisedStorage(totalBytes),
+        isExternal = isSdCard,
+        rootPath = path
     )
 }
 
