@@ -1,13 +1,18 @@
+
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import io.mhdkhubbi.filo.domain.FsEntry
+import io.mhdkhubbi.filo.domain.FileEntry
+import io.mhdkhubbi.filo.domain.MediaType
 import io.mhdkhubbi.filo.ui.theme.screens.FileScreen
 import io.mhdkhubbi.filo.ui.theme.screens.HomeScreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,85 +24,167 @@ import kotlin.io.path.Path
 import kotlin.io.path.name
 
 data class FileScreenUiState(
-    val files: List<FsEntry> = emptyList(),
+    val files: List<FileEntry> = emptyList(),
     val sizeCache: Map<String, Long> = emptyMap(),
+    // Selection & Operations
     val selectedPaths: Set<String> = emptySet(),
-    val pendingOperation: String? = null,
-    val operationPaths: Set<String> = emptySet(),
-    val fileName: String = "",
-    val isLoading: Boolean = false,
-    val showDialog: Boolean = false,
-    val isProcessing: Boolean = false,
-    val progress: Float = 0f,
+    val activeOperation: String? = null,
+    val sourcePaths: Set<String> = emptySet(),
+    val targetPath: String? = null,
+    // UI Metadata
+    val directoryName: String = "",
     val currentPath: String = "/storage/emulated/0",
-    val destinationPath: String? = null,
-    val shouldResetNavigation: Boolean = false,
-    val createFolderDialog: Boolean = false,
-    val folderNameToAdd: String = "",
-    val wrongName: String = "right",
-    val deletedOne: String = ""
-)
+    // Status Flags
+    val isLoading: Boolean = false,
+    val isFileActionInProgress: Boolean = false,
+    val actionProgress: Float = 0f,
+   // Dialog States
+    val isDeletionDialogVisible: Boolean = false,
 
-class FileScreenViewModel : ViewModel() {
+    val isCreateFolderDialogVisible: Boolean = false,
+    val newFolderName: String = "",
+    val folderNameError: String = "right",
+    // Navigation & Helpers
+    val shouldSyncNavigation: Boolean = false,
+    val targetDeletionPath: String = ""
+)
+@SuppressLint("StaticFieldLeak")
+class FileScreenViewModel(private val context: Context) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FileScreenUiState())
     val uiState: StateFlow<FileScreenUiState> = _uiState.asStateFlow()
 
-    // Helper to update state immutably
     private fun updateState(transform: (FileScreenUiState) -> FileScreenUiState) {
         _uiState.value = transform(_uiState.value)
     }
 
-    fun folderNameChange(name: String) {
-        updateState { it.copy(folderNameToAdd = name) }
-    }
 
-    fun ShowDialogChange(show: Boolean) {
-        updateState { it.copy(showDialog = show) }
+    private val folderSizeQueue = Channel<String>(Channel.UNLIMITED)
+    private val sizeUpdateBuffer = mutableMapOf<String, Long>()
+    private val limitedIO = Dispatchers.IO.limitedParallelism(4)
 
-    }
-
-    fun CreateFolderDialogChange(show: Boolean) {
-
-
-        updateState { it.copy(createFolderDialog = show) }
-
-
-    }
-
-    fun changedestinationPath(newdestinationPath: String?) {
-        updateState { it.copy(destinationPath = newdestinationPath) }
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun addingFolder() {
-        val state = _uiState.value
-        val result = createFolderIfNotExists(Path(state.currentPath), state.folderNameToAdd)
-        if (result) {
-            loadFiles(state.currentPath)
-            updateState {
-                it.copy(
-                    wrongName = "right",
-                    folderNameToAdd = "",
-                    createFolderDialog = false
-                )
+    init {
+        viewModelScope.launch(limitedIO) {
+            // Buffer observer loop
+            launch {
+                while (true) {
+                    delay(150) // Flush updates to UI every 300ms
+                    if (sizeUpdateBuffer.isNotEmpty()) applyBufferedSizes()
+                }
             }
-        } else {
-            updateState { it.copy(wrongName = "wrong") }
+
+            // Processing the queue
+            for (path in folderSizeQueue) {
+                // CRITICAL: We pass true for deepScan here
+                val size = calculatePathSize(path, deepScan = true)
+
+                sizeUpdateBuffer[path] = size
+                if (sizeUpdateBuffer.size >= 5) {
+                    applyBufferedSizes()
+                }
+            }
         }
     }
 
-    fun onCopyItem(path: String) {
-        updateState { it.copy(pendingOperation = "copy", operationPaths = setOf(path)) }
+    fun requestFolderSize(path: String) {
+        folderSizeQueue.trySend(path)
+    }
+    private fun applyBufferedSizes() {
+        // Create a thread-safe copy of the buffer
+        val snapshot = synchronized(sizeUpdateBuffer) {
+            val copy = sizeUpdateBuffer.toMap()
+            sizeUpdateBuffer.clear()
+            copy
+        }
+
+        if (snapshot.isEmpty()) return
+
+        updateState { state ->
+            val updated = state.files.map { entry ->
+                snapshot[entry.path]?.let {
+                    entry.copy(sizeBytes = it, formattedSize = formatSize(it))
+                } ?: entry
+            }
+            state.copy(files = updated)
+        }
     }
 
-    fun onMoveItem(path: String) {
-        updateState { it.copy(pendingOperation = "move", operationPaths = setOf(path)) }
+    fun loadMediaFolders(type: MediaType) {
+        updateState { it.copy(isLoading = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val folders = getMediaFolders(context, type)
+
+            updateState {
+                it.copy(
+                    files = folders,
+                    isLoading = false,
+                    currentPath = "media:$type"
+                )
+            }
+        }
     }
 
-    fun selectAll(files: List<FsEntry>) {
-        updateState { it.copy(selectedPaths = files.map { f -> f.fullPath }.toSet()) }
+
+    fun showDialogFlag(show: Boolean) {
+        updateState { it.copy(isDeletionDialogVisible = show) }
+    }
+    fun folderDialogFlag(show: Boolean) {
+        updateState { it.copy(isCreateFolderDialogVisible = show) }
+    }
+    fun copyItemFlag(path: String) {
+        updateState { it.copy(activeOperation = "copy", sourcePaths = setOf(path)) }
+    }
+
+    fun moveItemFlag(path: String) {
+        updateState { it.copy(activeOperation = "move", sourcePaths = setOf(path)) }
+    }
+    fun copyAllFlag() {
+        val state = _uiState.value
+        updateState {
+            it.copy(
+                activeOperation = "copy",
+                sourcePaths = state.selectedPaths,
+                selectedPaths = emptySet()
+            )
+        }
+    }
+
+    fun moveAllFlag() {
+        val state = _uiState.value
+        updateState {
+            it.copy(
+                activeOperation = "move",
+                sourcePaths = state.selectedPaths,
+                selectedPaths = emptySet()
+            )
+        }
+    }
+    fun clearNavigationResetFlag() {
+        updateState { it.copy(shouldSyncNavigation = false) }
+    }
+    fun cancelActiveOperation() {
+        updateState { it.copy(activeOperation = null, targetPath = null) }
+    }
+
+    fun resetNavigationTo(path: String, backStack: NavBackStack<NavKey>) {
+        backStack.clear()
+        backStack.add(HomeScreen)
+        backStack.add(FileScreen(path))
+    }
+
+    fun folderNameChange(name: String) {
+        updateState { it.copy(newFolderName = name) }
+    }
+
+    fun targetPathChange(newDestinationPath: String?) {
+        updateState { it.copy(targetPath = newDestinationPath) }
+    }
+    fun deleteItemChange(deletedItem: String) {
+        updateState { it.copy(targetDeletionPath = deletedItem) }
+    }
+    fun selectAll(files: List<FileEntry>) {
+        updateState { it.copy(selectedPaths = files.map { f -> f.path }.toSet()) }
     }
 
     fun clearSelection() {
@@ -115,120 +202,112 @@ class FileScreenViewModel : ViewModel() {
     }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun deleteOne(path: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            updateState { it.copy(isProcessing = true, progress = 0f) }
-
-            deleteFileOrDirectory(Path(path))
-
-            for (i in 1..10) {
-                delay(10)
-                val p = i / 10f
-                updateState { it.copy(progress = p) }
+    fun addingFolder() {
+        val state = _uiState.value
+        val result = createFolder(Path(state.currentPath), state.newFolderName)
+        if (result) {
+            loadFiles(state.currentPath)
+            updateState {
+                it.copy(
+                    folderNameError = "right",
+                    newFolderName = "",
+                    isCreateFolderDialogVisible = false
+                )
             }
-
-            loadFiles(_uiState.value.currentPath)
-            updateState { it.copy(isProcessing = false, deletedOne = "") }
+        } else {
+            updateState { it.copy(folderNameError = "wrong") }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun deleteSelected() {
+    fun deleteItem(path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            updateState { it.copy(isFileActionInProgress = true, actionProgress = 0f) }
+
+            deleteFileOrDirectory(Path(path))
+
+
+            withContext(Dispatchers.Main) {
+                for (i in 1..10) {
+                    delay(10)
+                    val p = i / 10f
+                    updateState { it.copy(actionProgress = p) }
+                }
+            }
+
+            loadFiles(_uiState.value.currentPath)
+            updateState { it.copy(isFileActionInProgress = false, targetDeletionPath = "") }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    fun deleteAll() {
         viewModelScope.launch(Dispatchers.IO) {
             val state = _uiState.value
-            updateState { it.copy(isProcessing = true, progress = 0f) }
+            updateState { it.copy(isFileActionInProgress = true, actionProgress = 0f) }
 
             val total = state.selectedPaths.size
             var done = 0
 
-            state.selectedPaths.forEach { path ->
-                deleteFileOrDirectory(Path(path))
-                done++
-                val overall = done.toFloat() / total
-                updateState { it.copy(progress = overall) }
+            withContext(Dispatchers.Main) {
+                state.selectedPaths.forEach { path ->
+                    deleteFileOrDirectory(Path(path))
+                    done++
+                    val overall = done.toFloat() / total
+                    updateState { it.copy(actionProgress = overall) }
+                }
             }
 
             clearSelection()
             loadFiles(state.currentPath)
-            updateState { it.copy(isProcessing = false) }
+            updateState { it.copy(isFileActionInProgress = false) }
         }
     }
-
-    fun onCopy() {
-        val state = _uiState.value
-        updateState {
-            it.copy(
-                pendingOperation = "copy",
-                operationPaths = state.selectedPaths,
-                selectedPaths = emptySet()
-            )
-        }
-    }
-
-    fun onMove() {
-        val state = _uiState.value
-        updateState {
-            it.copy(
-                pendingOperation = "move",
-                operationPaths = state.selectedPaths,
-                selectedPaths = emptySet()
-            )
-        }
-    }
-
-    fun cancelPendingOperation() {
-        updateState { it.copy(pendingOperation = null, destinationPath = null) }
-    }
-
-    fun clearNavigationResetFlag() {
-        updateState { it.copy(shouldResetNavigation = false) }
-    }
-
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun executePendingOperation() {
+    fun executeActiveOperation() {
         val state = _uiState.value
-        val dest = state.destinationPath ?: return
-        println("EXECUTE: pending=${state.pendingOperation} dest=$dest selected=${state.selectedPaths.size}")
+        val dest = state.targetPath ?: return
+        println("EXECUTE: pending=${state.activeOperation} dest=$dest selected=${state.selectedPaths.size}")
 
-        when (state.pendingOperation) {
-            "copy" -> copySelectedWithProgress(Path(dest))
-            "move" -> moveSelectedWithProgress(Path(dest))
+        when (state.activeOperation) {
+            "copy" -> copyAll(Path(dest))
+            "move" -> moveAll(Path(dest))
         }
 
         updateState {
             it.copy(
-                pendingOperation = null,
-                destinationPath = null,
+                activeOperation = null,
+                targetPath = null,
                 selectedPaths = emptySet()
             )
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun copySelectedWithProgress(targetDir: Path) {
+    fun copyAll(targetDir: Path) {
         val state = _uiState.value
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                updateState { it.copy(isProcessing = true, progress = 0f) }
+                updateState { it.copy(isFileActionInProgress = true, actionProgress = 0f) }
 
-                val totalItems = state.operationPaths.size
+                val totalItems = state.sourcePaths.size
                 var completedItems = 0
 
-                for (src in state.operationPaths) {
+                for (src in state.sourcePaths) {
                     val srcPath = Path(src)
                     val destPath = targetDir.resolve(srcPath.name)
 
-                    copyWithProgress(srcPath, destPath) { copied, total ->
+                    copyDirectoryOrFile(srcPath, destPath) { copied, total ->
                         val itemProgress = copied.toFloat() / total.toFloat()
                         val overall = (completedItems + itemProgress) / totalItems
-                        updateState { it.copy(progress = overall) }
+                        updateState { it.copy(actionProgress = overall) }
                     }
 
                     completedItems++
                 }
 
                 withContext(Dispatchers.Main) {
-                    updateState { it.copy(shouldResetNavigation = true) }
+                    updateState { it.copy(shouldSyncNavigation = true) }
                 }
 
                 loadFiles(state.currentPath)
@@ -236,36 +315,36 @@ class FileScreenViewModel : ViewModel() {
             } catch (e: Exception) {
                 println("PASTE CRASH: ${e.stackTraceToString()}")
             } finally {
-                updateState { it.copy(isProcessing = false) }
+                updateState { it.copy(isFileActionInProgress = false) }
             }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun moveSelectedWithProgress(targetDir: Path) {
+    fun moveAll(targetDir: Path) {
         val state = _uiState.value
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                updateState { it.copy(isProcessing = true, progress = 0f) }
+                updateState { it.copy(isFileActionInProgress = true, actionProgress = 0f) }
 
-                val totalItems = state.operationPaths.size
+                val totalItems = state.sourcePaths.size
                 var completedItems = 0
 
-                for (src in state.operationPaths) {
+                for (src in state.sourcePaths) {
                     val srcPath = Path(src)
                     val destPath = targetDir.resolve(srcPath.name)
 
-                    moveWithProgress(srcPath, destPath) { copied, total ->
+                    moveDirectoryOrFile(srcPath, destPath) { copied, total ->
                         val itemProgress = copied.toFloat() / total.toFloat()
                         val overall = (completedItems + itemProgress) / totalItems
-                        updateState { it.copy(progress = overall) }
+                        updateState { it.copy(actionProgress = overall) }
                     }
 
                     completedItems++
                 }
 
                 withContext(Dispatchers.Main) {
-                    updateState { it.copy(shouldResetNavigation = true) }
+                    updateState { it.copy(shouldSyncNavigation = true) }
                 }
 
                 loadFiles(state.currentPath)
@@ -273,74 +352,50 @@ class FileScreenViewModel : ViewModel() {
             } catch (e: Exception) {
                 println("MOVE CRASH: ${e.stackTraceToString()}")
             } finally {
-                updateState { it.copy(isProcessing = false) }
+                updateState { it.copy(isFileActionInProgress = false) }
             }
         }
     }
-
-
-    fun resetNavigationTo(path: String, backStack: NavBackStack<NavKey>) {
-        backStack.clear()
-        backStack.add(HomeScreen)
-        backStack.add(FileScreen(path))
-    }
-
-
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun loadFiles(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            updateState { it.copy(currentPath = path,
-             //   isLoading = true
-            ) }
+            updateState { it.copy(isLoading = true, currentPath = path) }
 
-            val base = listFilesInLight(path, _uiState.value.sizeCache)
-                .filter { !Path(it.fullPath).name.startsWith(".") }
-                .sortedWith(
-                    compareBy<FsEntry> { !it.isDirectory }
-                        .thenBy { it.name.lowercase() }
-                )
+            // 1. Instant Listing (Filenames only)
+            val entries = listFiles(path)
 
-            val withSizes = base.map { e ->
-                if (e.isDirectory) {
-                    val cached = _uiState.value.sizeCache[e.fullPath]
-                    if (cached != null) {
-                        e.copy(sizeBytes = cached, sizeMega = formatSize(cached))
-                    } else e
-                } else e
-            }
-
-            withContext(Dispatchers.Main) {
+            // 2. Immediate UI Push - Use immediate to bypass the main loop queue
+            withContext(Dispatchers.Main.immediate) {
                 updateState {
                     it.copy(
-                        files = withSizes,
-                      //  isLoading = false,
-                        fileName = if (path == "/storage/emulated/0") "Internal Storage"
+                        files = entries,
+                        isLoading = false,
+                        directoryName = if (path == "/storage/emulated/0") "Internal Storage"
                         else path.substringAfterLast("/")
                     )
                 }
             }
 
-            // Async folder size calculation
-            withSizes.forEach { entry ->
-                if (entry.isDirectory && _uiState.value.sizeCache[entry.fullPath] == null) {
-                    viewModelScope.launch(Dispatchers.IO) {
-                        val size = getFolderSize(Path(entry.fullPath))
-                        val newCache = _uiState.value.sizeCache + (entry.fullPath to size)
-                        withContext(Dispatchers.Main) {
-                            val idx =
-                                _uiState.value.files.indexOfFirst { it.fullPath == entry.fullPath }
-                            if (idx >= 0) {
-                                val updatedFiles = _uiState.value.files.toMutableList()
-                                updatedFiles[idx] = updatedFiles[idx].copy(
-                                    sizeBytes = size,
-                                    sizeMega = formatSize(size)
-                                )
-                                updateState { it.copy(files = updatedFiles, sizeCache = newCache) }
-                            }
-                        }
-                    }
-                }
+            // 3. Optimization: Only request sizes for common user folders first
+            // Avoid slamming the disk with 50 background threads at once
+            val priorityFolders = setOf("Download", "DCIM", "Documents", "Pictures", "Music", "Movies")
+
+            // First pass: Priority folders
+            entries.filter { it.isFolder && priorityFolders.contains(it.name) }.forEach {
+                requestFolderSize(it.path)
+            }
+
+            // Small delay to let the UI finish animating
+            delay(200)
+
+            // Second pass: Everything else
+            entries.filter { it.isFolder && !priorityFolders.contains(it.name) }.forEach {
+                requestFolderSize(it.path)
             }
         }
     }
+
+
+
+
 }
