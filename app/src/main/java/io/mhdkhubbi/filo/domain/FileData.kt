@@ -1,15 +1,15 @@
 package io.mhdkhubbi.filo.domain
 
-data class FsEntry(
+data class FileEntry(
     val name: String,
-    val fullPath: String,
-    val isDirectory: Boolean,
+    val path: String,
+    val isFolder: Boolean,
     val type: FileType,
     val sizeBytes: Long,
-    val itemCount: Int,
-    val sizeMega:String
+    val childrenCount: Int,
+    val formattedSize:String
 )
-
+enum class MediaType { IMAGES, VIDEOS, AUDIO, DOWNLOADS, DOCUMENTS }
 enum class FileType {
     FOLDER,
     PDF,
@@ -19,7 +19,14 @@ enum class FileType {
     AUDIO,
     OTHER
 }
-data class StorageStats(
+data class StorageVolume(
+    val rootPath: String,
+    val totalBytes: Long,
+    val freeBytes: Long,
     val usedBytes: Long,
-    val totalBytes: Long
-)
+    val usagePercent: Int,
+    val totalCapacity: String,
+    val isExternal: Boolean,
+
+    )
+
