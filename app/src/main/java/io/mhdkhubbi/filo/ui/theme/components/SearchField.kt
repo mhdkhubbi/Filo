@@ -36,7 +36,7 @@ fun SearchField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp)
+            .padding(start = 15.dp, end = 15.dp)
             .height(40.dp)
             .background(Gray50, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center

@@ -24,13 +24,13 @@ import io.mhdkhubbi.filo.R
 @Composable
 fun TopBar(modifier: Modifier = Modifier){
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(modifier = Modifier.fillMaxWidth().padding(start = 15.dp, end = 18.dp),
+        Row(modifier = Modifier.fillMaxWidth().padding(start = 5.dp, end = 15.dp),
             verticalAlignment = Alignment.CenterVertically){
             Icon(
                 painter = painterResource(R.drawable.filoapp),
                 contentDescription = "App Icon",
                 tint=Color.Unspecified,
-                modifier = Modifier.size(42.dp)
+                modifier = Modifier.size(40.dp)
             )
 
             Text(modifier=Modifier.weight(1f),

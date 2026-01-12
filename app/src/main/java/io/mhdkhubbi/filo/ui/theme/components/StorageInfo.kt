@@ -1,5 +1,8 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
+import Blue50
+import Gray100
+import Gray500
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,31 +18,30 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
-import io.mhdkhubbi.filo.ui.theme.Gray100
-import io.mhdkhubbi.filo.ui.theme.Gray500
 import io.mhdkhubbi.filo.ui.theme.screens.FileScreen
 
 
 @Composable
 fun StorageInfo(
-    onNavigation: (NavKey) -> Unit = {},
-    sizeStorage: () -> Float,
+    sizeStorage: Float,
     percentUsage: String,
-    label: String
+    label: String,
+    name: String, modifier: Modifier = Modifier,
+    onNavigation: (NavKey) -> Unit = {}
 ) {
 
     Column(
         modifier = Modifier
-            .padding(8.dp)
+            .padding(all = 15.dp)
             .clickable(onClick = {
                 onNavigation(FileScreen("/storage/emulated/0"))
             }),
@@ -57,7 +59,6 @@ fun StorageInfo(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CustomCircularProgressIndicator(sizeStorage, label)
@@ -65,7 +66,7 @@ fun StorageInfo(
                 Column(
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text("Internal Storage", color = Gray500)
+                    Text(name, color = Gray500)
                     Spacer(Modifier.height(8.dp))
                     Text(
                         percentUsage,
@@ -82,17 +83,18 @@ fun StorageInfo(
 
 @Composable
 fun CustomCircularProgressIndicator(
-    sizeStorage: () -> Float, label: String
+    sizeStorage: Float, label: String, modifier: Modifier = Modifier
 ) {
     Box(
         modifier = Modifier
-            .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp)),
+            .background(MaterialTheme.colorScheme.onPrimary,RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            sizeStorage,
+            {sizeStorage},
             strokeWidth = 10.dp,
-            modifier = Modifier.size(70.dp)
+            modifier = Modifier.size(80.dp),
+            trackColor = Blue50
         )
         Text(
             label,
