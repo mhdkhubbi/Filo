@@ -73,5 +73,9 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+
 
 }
