@@ -1,5 +1,7 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
+import Gray50
+import Gray500
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,24 +25,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.mhdkhubbi.filo.ui.theme.Gray100
-import io.mhdkhubbi.filo.ui.theme.Gray500
 
 @Composable
 fun SearchField(
-    values: String="",
+    modifier: Modifier = Modifier, values: String="",
     onValueChange: (String) -> Unit={}
 ) {
     var text by remember { mutableStateOf("") }
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 10.dp, end = 10.dp)
+            .padding(start = 20.dp, end = 20.dp)
             .height(40.dp)
-            .background(Gray100, RoundedCornerShape(12.dp)),
+            .background(Gray50, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
         Row( modifier = Modifier.padding(8.dp),
@@ -49,22 +47,19 @@ fun SearchField(
         ) {
             Icon(
                 Icons.Default.Search,
-                contentDescription = "Search",
-                tint = Gray500
+                contentDescription = "Search", tint = Gray500
+
             )
-
             Spacer(Modifier.width(8.dp))
-
             BasicTextField(
                 value = text,
                 onValueChange = {text=it},
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
+                textStyle = LocalTextStyle.current.copy(color = Gray500),
                 decorationBox = { innerTextField ->
                     if (text.isEmpty()) {
                         Text(
-                            "Search folders or files",
-                            color = Gray500
+                            "Search folders or files",color=Gray500
                         )
                     }
                     innerTextField()
@@ -74,9 +69,3 @@ fun SearchField(
     }
 }
 
-@Preview
-@Composable
-fun SearchPreview() {
-    SearchField(
-    )
-}
