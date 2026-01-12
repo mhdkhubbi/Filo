@@ -1,14 +1,18 @@
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
+import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import io.mhdkhubbi.filo.domain.FileType
 import io.mhdkhubbi.filo.domain.FsEntry
+import io.mhdkhubbi.filo.domain.MediaType
 import io.mhdkhubbi.filo.domain.StorageStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -16,24 +20,24 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.Locale
 
 // -------------------- LISTING --------------------
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> {
+fun listFiles(
+    path: String,
+): List<FsEntry> {
     val root = Path.of(path)
+
     return Files.newDirectoryStream(root).use { stream ->
         stream.asSequence()
             .filter { !it.fileName.toString().startsWith(".") }
             .map { entry ->
                 val full = entry.toString()
                 val isDir = Files.isDirectory(entry)
-
-                val sizeBytes = if (isDir) {
-                    sizeCache[full] ?: 0L
-                } else {
-                    sizeCache[full] ?: 0L // defer actual size calculation
-                }
+                val sizeBytes = if (isDir) 0L else File(full).length()
+                val sizeMega = if (isDir) "--" else formatSize(sizeBytes)
 
                 FsEntry(
                     name = entry.fileName.toString(),
@@ -41,47 +45,87 @@ fun listFilesInLight(path: String, sizeCache: Map<String, Long>): List<FsEntry> 
                     isDirectory = isDir,
                     type = detectType(entry),
                     sizeBytes = sizeBytes,
-                    itemCount = 0, // lazy, compute later
-                    sizeMega = formatSize(sizeBytes)
+                    itemCount =if (isDir) countVisibleItems(full) else 0,
+                    sizeMega = sizeMega
                 )
             }
             .toList()
     }
 }
 
-// -------------------- COPY / MOVE --------------------
+fun getMediaFolders(context: Context, type: MediaType): List<FsEntry> {
+    val projection = arrayOf(
+        MediaStore.MediaColumns.DATA
+    )
+    val uri = when (type) {
+        MediaType.IMAGES -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        MediaType.VIDEOS -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        MediaType.AUDIO -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        MediaType.DOWNLOADS -> MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        MediaType.DOCUMENTS -> MediaStore.Files.getContentUri("external")
+    }
 
-fun copyFile(src: Path, dest: Path, buffer: ByteArray) {
-    try {
-        Files.createDirectories(dest.parent)
-        Files.newInputStream(src).use { input ->
-            Files.newOutputStream(dest).use { output ->
-                var bytes = input.read(buffer)
-                while (bytes >= 0) {
-                    output.write(buffer, 0, bytes)
-                    bytes = input.read(buffer)
-                }
-            }
-        }
-    } catch (_: Exception) { }
-}
+    // MIME filter for documents
+    val selection = when (type) {
+        MediaType.DOCUMENTS -> (
+                "${MediaStore.Files.FileColumns.MIME_TYPE} IN (" +
+                        "'application/pdf'," +
+                        "'application/msword'," +
+                        "'application/vnd.openxmlformats-officedocument.wordprocessingml.document'," +
+                        "'application/vnd.ms-excel'," +
+                        "'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'," +
+                        "'application/vnd.ms-powerpoint'," +
+                        "'application/vnd.openxmlformats-officedocument.presentationml.presentation'," +
+                        "'text/plain'" +
+                        ")"
+                )
+        else -> null
+    }
 
-suspend fun copyDirectory(src: Path, dest: Path) = withContext(Dispatchers.IO) {
-    val buffer = ByteArray(64 * 1024)
-    Files.walk(src).use { stream ->
-        stream.forEach { path ->
-            val relative = src.relativize(path)
-            val target = dest.resolve(relative)
-            if (Files.isDirectory(path)) {
-                Files.createDirectories(target)
-            } else {
-                copyFile(path, target, buffer)
-            }
+    val cursor = context.contentResolver.query(
+        uri,
+        projection,
+        selection,
+        null,
+        null
+    )
+
+    val folderMap = LinkedHashMap<String, MutableList<String>>()
+
+    cursor?.use {
+        val dataIndex = it.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+
+        while (it.moveToNext()) {
+            val filePath = it.getString(dataIndex) ?: continue
+            val folderPath = File(filePath).parent ?: continue
+
+            val cleanPath = folderPath.replace("//", "/").trimEnd('/')
+
+            folderMap.getOrPut(cleanPath) { mutableListOf() }.add(filePath)
         }
     }
+    val result= folderMap.map { (folderPath, filesInFolder) ->
+        val folderName = File(folderPath).name
+        val totalSize = filesInFolder.sumOf { File(it).length() }
+        val sizeMega = "%.2f MB".format(totalSize / 1024f / 1024f)
+
+        FsEntry(
+            name = folderName,
+            fullPath = folderPath,
+            isDirectory = true,
+            type = FileType.FOLDER,
+            sizeBytes = totalSize,
+            itemCount = filesInFolder.size,
+            sizeMega = sizeMega
+        )
+
+    }
+
+    return result
 }
 
-suspend fun copyFileWithProgress(
+// -------------------- COPY / MOVE / DELETE / CREATE --------------------
+suspend fun copyFile(
     src: Path,
     dest: Path,
     onProgress: (Long, Long) -> Unit
@@ -105,7 +149,7 @@ suspend fun copyFileWithProgress(
 }
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-suspend fun copyDirectoryWithProgress(
+suspend fun copyDirectory(
     src: Path,
     dest: Path,
     onProgress: (Long, Long) -> Unit
@@ -140,27 +184,25 @@ suspend fun copyDirectoryWithProgress(
 }
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-suspend fun copyWithProgress(src: Path, dest: Path, onProgress: (Long, Long) -> Unit) {
+suspend fun copyDirectoryOrFile(src: Path, dest: Path, onProgress: (Long, Long) -> Unit) {
     if (Files.isDirectory(src)) {
-        copyDirectoryWithProgress(src, dest, onProgress)
+        copyDirectory(src, dest, onProgress)
     } else {
-        copyFileWithProgress(src, dest, onProgress)
+        copyFile(src, dest, onProgress)
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-suspend fun moveWithProgress(src: Path, dest: Path, onProgress: (Long, Long) -> Unit) {
+suspend fun moveDirectoryOrFile(src: Path, dest: Path, onProgress: (Long, Long) -> Unit) {
     try {
         Files.createDirectories(dest.parent)
         Files.move(src, dest, StandardCopyOption.REPLACE_EXISTING)
         onProgress(1, 1) // instant complete
     } catch (_: Exception) {
-        copyWithProgress(src, dest, onProgress)
+        copyDirectoryOrFile(src, dest, onProgress)
         deleteFileOrDirectory(src)
     }
 }
-
-// -------------------- DELETE --------------------
 
 suspend fun deleteFileOrDirectory(path: Path) = withContext(Dispatchers.IO) {
     if (Files.notExists(path)) return@withContext
@@ -175,16 +217,22 @@ suspend fun deleteFileOrDirectory(path: Path) = withContext(Dispatchers.IO) {
         }
     })
 }
+fun createFolder(parent: Path, folderName: String): Boolean {
+    val newFolder = parent.resolve(folderName)
 
-// -------------------- HELPERS --------------------
-
-fun isDirectorySafe(path: Path): Boolean {
     return try {
-        Files.readAttributes(path, BasicFileAttributes::class.java).isDirectory
+        if (Files.exists(newFolder)) {
+            false // folder already exists
+        } else {
+            Files.createDirectories(newFolder)
+            true // folder created
+        }
     } catch (_: Exception) {
-        path.toFile().isDirectory
+        false
     }
 }
+
+// -------------------- HELPERS --------------------
 
 fun detectType(entry: Path): FileType {
     val name = entry.fileName.toString().lowercase()
@@ -203,49 +251,167 @@ fun detectType(entry: Path): FileType {
 @SuppressLint("DefaultLocale")
 fun formatSize(bytes: Long): String {
     if (bytes <= 0) return "0 B"
+
+    val locale = Locale("en", "US")
+
     val kb = 1024.0
     val mb = kb * 1024
     val gb = mb * 1024
+
     return when {
-        bytes >= gb -> String.format("%.2f GB", bytes / gb)
-        bytes >= mb -> String.format("%.2f MB", bytes / mb)
-        bytes >= kb -> String.format("%.2f KB", bytes / kb)
-        else -> "$bytes B"
+        bytes >= gb -> String.format(locale, "%.2f GB", bytes / gb)
+        bytes >= mb -> String.format(locale, "%.2f MB", bytes / mb)
+        bytes >= kb -> String.format(locale, "%.2f KB", bytes / kb)
+        else -> String.format(locale, "%d B", bytes)
+    }
+}
+fun countVisibleItems(path: String): Int {
+    val folder = File(path)
+    if (!folder.exists() || !folder.isDirectory) return 0
+
+    return folder.listFiles()?.count { !it.name.startsWith(".") } ?: 0
+}
+fun getAdvertisedStorage(totalBytes: Long): String {
+    val gbDecimal = totalBytes / 1_000_000_000.0
+
+    return when {
+        // If the user partition is > 90GB, it's definitely a 128GB+ phone
+        gbDecimal >= 90 -> "128 GB"
+        // If the user partition is > 45GB, it's a 64GB phone (OS took ~15GB)
+        gbDecimal >= 45 -> "64 GB"
+        // If the user partition is > 20GB, it's a 32GB phone
+        gbDecimal >= 20 -> "32 GB"
+        // If the user partition is > 10GB, it's a 16GB phone
+        gbDecimal >= 10 -> "16 GB"
+        else -> "${gbDecimal.toInt()} GB"
     }
 }
 
-fun getStorageStats(): StorageStats {
-    val stat = StatFs(Environment.getExternalStorageDirectory().path)
+
+fun getStorageStats(context: Context): List<StorageStats> {
+    val result = mutableListOf<StorageStats>()
+
+    // --- Internal storage ---
+    val internalPath = Environment.getExternalStorageDirectory().path
+    result.add(calculateStats(internalPath, isSdCard = false))
+
+    // --- SD card (if present) ---
+    val dirs = context.getExternalFilesDirs(null)
+    if (dirs.size > 1 && dirs[1] != null) {
+        val sdCardFile = dirs[1]
+        val absolutePath = sdCardFile.absolutePath
+        val sdCardRootPath = absolutePath.split("/Android")[0]
+        result.add(calculateStats(sdCardRootPath, isSdCard = true))
+    }
+
+    return result
+}
+
+private fun calculateStats(path: String, isSdCard: Boolean): StorageStats {
+    val stat = StatFs(path)
     val blockSize = stat.blockSizeLong
     val totalBlocks = stat.blockCountLong
     val availableBlocks = stat.availableBlocksLong
-    val totalBytes = totalBlocks * blockSize
-    val freeBytes = availableBlocks * blockSize
-    val usedBytes = totalBytes - freeBytes
-    return StorageStats(usedBytes, totalBytes)
-}
-fun getFolderSize(path: Path): Long {
-    return try {
-        Files.walk(path).use { stream ->
-            stream.filter { Files.isRegularFile(it) }
-                .mapToLong { Files.size(it) }
-                .sum()
-        }
-    } catch (_: Exception) {
-        0L
-    }
-}
-fun createFolderIfNotExists(parent: Path, folderName: String): Boolean {
-    val newFolder = parent.resolve(folderName)
 
-    return try {
-        if (Files.exists(newFolder)) {
-            false // folder already exists
-        } else {
-            Files.createDirectories(newFolder)
-            true // folder created
-        }
-    } catch (_: Exception) {
-        false
+    val totalBytes = totalBlocks * blockSize
+    val availableBytes = availableBlocks * blockSize
+    val usedBytes = totalBytes - availableBytes
+
+    val percentUsed = if (totalBytes > 0) {
+        (usedBytes.toDouble() / totalBytes.toDouble() * 100).toInt()
+    } else 0
+
+    return StorageStats(
+        usedBytes = usedBytes,
+        totalBytes = totalBytes,
+        availableBytes = availableBytes,
+        percentUsed = percentUsed,
+        advertised = getAdvertisedStorage(totalBytes),
+        path = path,
+        isSdCard = isSdCard
+    )
+}
+
+
+
+/**
+ * Calculates size of a path.
+ * - If it's a file, returns size immediately.
+ * - If it's a folder, uses a non-recursive sum for speed.
+ */
+fun calculatePathSize(path: String, deepScan: Boolean = false): Long {
+    val file = File(path)
+    if (!file.exists()) return 0L
+
+    // If it's a file (PDF, Image), return size immediately
+    if (file.isFile) return file.length()
+
+    // If it's a folder:
+    return if (deepScan) {
+        // Deep Scan: Walks all subdirectories (Slow, for background)
+        calculateFolderSizeRecursive(file)
+    } else {
+        // Light Scan: Only counts files in the top level (Fast, for UI listing)
+        calculateFolderSizeNonRecursive(file)
     }
 }
+
+private fun calculateFolderSizeRecursive(root: File): Long {
+    // OPTIMIZATION: Do not auto-calculate the Android system folder.
+    // This folder contains thousands of files and is restricted on Android 11+.
+    // Calculating it is the main cause of slow startup.
+    val path = root.absolutePath
+    if (path.endsWith("/Android") || path.contains("/.thumbnails")
+        || path.contains("/com.google.android.gms")) {
+        return 0L
+    }
+
+    var total = 0L
+    val stack = mutableListOf(root)
+
+    try {
+        while (stack.isNotEmpty()) {
+            val current = stack.removeAt(stack.size - 1)
+
+            // Get all children (files and folders)
+            val children = current.listFiles() ?: continue
+
+            for (child in children) {
+                // Skip hidden files and the Android system folder COMPLETELY
+                if (child.name.startsWith(".") || child.name == "Android") continue
+
+                if (child.isFile) {
+                    total += child.length()
+                } else {
+                    // Optimization: Don't go deeper than 10 levels for auto-calculation
+                    if (stack.size < 100) {
+                        stack.add(child)
+                    }
+                }
+            }
+
+        }
+    } catch (e: Exception) {
+        // Handle potential permission changes or deletions during calculation
+        e.printStackTrace()
+    }
+    return total
+}
+
+
+
+private fun calculateFolderSizeNonRecursive(folder: File): Long {
+    var total = 0L
+    folder.listFiles()?.forEach { child ->
+        if (!child.name.startsWith(".") && child.isFile) {
+            total += child.length()
+        }
+    }
+    return total
+}
+
+
+
+
+
+
