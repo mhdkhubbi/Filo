@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Filo" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:layoutDirection">ltr</item>
-        <!-- Use the color we defined above -->
-<!--        <item name="android:windowBackground">@color/app_background</item>-->
 
-<!--        &lt;!&ndash; This prevents the system from showing a blank white screen-->
-<!--             while the Compose engine is warming up &ndash;&gt;-->
-<!--        <item name="android:windowDisablePreview">false</item>-->
-
-<!--        &lt;!&ndash; Optional: Ensure the status bar matches your theme during splash &ndash;&gt;-->
-<!--        <item name="android:windowTranslucentStatus">true</item>-->
+    <!-- 1. The Splash Screen Theme -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FFFFFF</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_container</item>
+        <!-- This points to the theme below -->
+        <item name="postSplashScreenTheme">@style/Theme.Filo</item>
     </style>
+
+    <!-- 2. The Base Application Theme (The "Missing Symbol") -->
+    <style name="Theme.Filo" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Customize your primary colors here -->
+        <item name="colorPrimary">#0791F8</item>
+        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
 
 </resources>

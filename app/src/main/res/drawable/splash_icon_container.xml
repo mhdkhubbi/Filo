@@ -1,0 +1,15 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The Background Circle/Rounded Shape -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" /> <!-- Your Brand Blue -->
+        </shape>
+    </item>
+    <!-- Your Logo centered inside with padding -->
+    <item
+        android:drawable="@drawable/ic_logo_vector"
+        android:top="5dp"
+        android:bottom="5dp"
+        android:left="5dp"
+        android:right="5dp" />
+</layer-list>
