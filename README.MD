@@ -1,6 +1,3 @@
-Here’s a clean, polished README.md that fits your project perfectly — warm, honest, and clear about its purpose as a training app. It highlights your tech stack, limitations, and Android version support in a professional but friendly tone.
-You can paste this directly into your README.md file.
-
 📁 File Manager — Training Project
 A learning-focused Android app built with curiosity, patience, and a lot of love ❤️
 This project is a personal exploration of modern Android development using Jetpack Compose, Kotlin Coroutines, and high‑performance file APIs. It’s not intended for production use — instead, it serves as a hands‑on playground to experiment, break things, fix them, and grow as a developer.
