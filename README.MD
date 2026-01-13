@@ -34,7 +34,7 @@ This project supports:
 ## 📸 Screenshots
 
 ### Home Screen
-![Home Screen](screenshots/home.png)
+<img src="screenshots/home.png" width="300">
 
 ### Details Screen
 ![Details Screen](screenshots/folders.png)
