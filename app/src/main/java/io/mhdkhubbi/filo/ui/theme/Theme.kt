@@ -38,7 +38,7 @@ private val LightColorScheme = lightColorScheme(    primary = Blue500,
     surface = Color.White,
     onSurface = Gray900,
 
-    // MAPPING YOUR REQUESTS HERE:
+
     surfaceVariant = Gray50,         // background Gray50
     onSurfaceVariant = Gray500,      // tint of icon Gray500
     outlineVariant = Gray100,        // border Gray100

@@ -63,27 +63,56 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
     private val limitedIO = Dispatchers.IO.limitedParallelism(4)
 
     init {
-        viewModelScope.launch(limitedIO) {
-            // Buffer observer loop
-            launch {
-                while (true) {
-                    delay(150) // Flush updates to UI every 300ms
-                    if (sizeUpdateBuffer.isNotEmpty()) applyBufferedSizes()
-                }
+        // WE ONLY START THE BUFFER LOOP HERE
+        // We do NOT start the folderSizeQueue processing yet to save CPU at startup
+        viewModelScope.launch(Dispatchers.Main) {
+            while (true) {
+                delay(300)
+                if (sizeUpdateBuffer.isNotEmpty()) applyBufferedSizes()
             }
+        }
+    }
 
-            // Processing the queue
+    // NEW: A flag to ensure we only start the background worker once
+    private var isWorkerStarted = false
+
+    private fun startBackgroundWorker() {
+        if (isWorkerStarted) return
+        isWorkerStarted = true
+
+        viewModelScope.launch(limitedIO) {
             for (path in folderSizeQueue) {
-                // CRITICAL: We pass true for deepScan here
-                val size = calculatePathSize(path, deepScan = true)
-
-                sizeUpdateBuffer[path] = size
-                if (sizeUpdateBuffer.size >= 5) {
-                    applyBufferedSizes()
+                // Check if it's a directory before deep scanning
+                val file = java.io.File(path)
+                if (file.isDirectory) {
+                    val size = calculatePathSize(path, deepScan = true)
+                    sizeUpdateBuffer[path] = size
                 }
             }
         }
     }
+//    init {
+//        viewModelScope.launch(limitedIO) {
+//            // Buffer observer loop
+//            launch {
+//                while (true) {
+//                    delay(150) // Flush updates to UI every 300ms
+//                    if (sizeUpdateBuffer.isNotEmpty()) applyBufferedSizes()
+//                }
+//            }
+//
+//            // Processing the queue
+//            for (path in folderSizeQueue) {
+//
+//                val size = calculatePathSize(path, deepScan = true)
+//
+//                sizeUpdateBuffer[path] = size
+//                if (sizeUpdateBuffer.size >= 5) {
+//                    applyBufferedSizes()
+//                }
+//            }
+//        }
+//    }
 
 
 
@@ -366,6 +395,7 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
     }
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun loadFiles(path: String) {
+        startBackgroundWorker()
         viewModelScope.launch(Dispatchers.IO) {
             updateState { it.copy(isLoading = true, currentPath = path) }
 

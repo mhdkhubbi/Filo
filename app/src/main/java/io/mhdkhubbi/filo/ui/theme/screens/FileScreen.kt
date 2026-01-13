@@ -362,7 +362,7 @@ fun FolderField(
                     value = nameFolder,
                     onValueChange = { onValueChange(it) },
                     singleLine = true,
-                    //     textStyle = LocalTextStyle.current.copy(color = Gray500),
+
                     decorationBox = { innerTextField ->
                         if (nameFolder.isEmpty()) {
                             Text(
