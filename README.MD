@@ -1,8 +1,8 @@
-📁 File Manager — Training Project
+📁# **File Manager** — Training Project
 A learning-focused Android app built with curiosity, patience, and a lot of love ❤️
 This project is a personal exploration of modern Android development using Jetpack Compose, Kotlin Coroutines, and high‑performance file APIs. It’s not intended for production use — instead, it serves as a hands‑on playground to experiment, break things, fix them, and grow as a developer.
 
-🚀 Tech Stack & Core Features
+🚀 # **Tech Stack & Core Features&**
 UI
 - Jetpack Compose (Material 3)
 Modern declarative UI with dynamic theming and smooth animations.
@@ -12,15 +12,12 @@ Using the experimental runtime + UI APIs for a fully Compose‑native navigation
 Architecture
 - UDF (Unidirectional Data Flow)
 Backed by Kotlin Coroutines for predictable state management and clean async handling.
-Image Loading
-- Coil
-Lightweight, fast, and Compose‑friendly image loading.
 Core Android APIs
 - Media API — Efficient access to images, videos, and media metadata
 - java.nio.file (Path API) — High‑performance file operations
 - Background workers for IO tasks and staggered loading
 
-⚠️ Project Status (Known Limitations)
+⚠️ # ** Project Status ** (Known Limitations)
 This app is for experiments and training, not production. Some features are intentionally incomplete or still evolving.
 - Search
 The UI is implemented, but the actual search logic is not yet functional.
@@ -31,11 +28,11 @@ While IO performance has been improved, deeper refactoring and tuning are still 
 - Work in Progress
 Several UI components and edge‑case behaviors for file operations are still being refined.
 
-📱 Android Version Support
+📱 # **Android Version Support**
 This project supports:
 - Android 11 (API 30) and above
 
-❤️ Purpose
+❤️ # **Purpose**
 This project is built with curiosity, patience, and a genuine desire to learn. It’s a safe space to experiment with modern Android tools, explore architecture patterns, and practice building a real‑world‑style file manager — all crafted with love.
 
 
