@@ -1,8 +1,8 @@
-📁# **File Manager** — Training Project
+#📁 **File Manager** — Training Project
 A learning-focused Android app built with curiosity, patience, and a lot of love ❤️
 This project is a personal exploration of modern Android development using Jetpack Compose, Kotlin Coroutines, and high‑performance file APIs. It’s not intended for production use — instead, it serves as a hands‑on playground to experiment, break things, fix them, and grow as a developer.
 
-🚀 # **Tech Stack & Core Features & UI**
+#🚀 **Tech Stack & Core Features & UI**
 
 - Jetpack Compose (Material 3)
 Modern declarative UI with dynamic theming and smooth animations.
