@@ -2,8 +2,8 @@
 A learning-focused Android app built with curiosity, patience, and a lot of love ❤️
 This project is a personal exploration of modern Android development using Jetpack Compose, Kotlin Coroutines, and high‑performance file APIs. It’s not intended for production use — instead, it serves as a hands‑on playground to experiment, break things, fix them, and grow as a developer.
 
-🚀 # **Tech Stack & Core Features&**
-UI
+🚀 # **Tech Stack & Core Features & UI**
+
 - Jetpack Compose (Material 3)
 Modern declarative UI with dynamic theming and smooth animations.
 Navigation
@@ -17,7 +17,7 @@ Core Android APIs
 - java.nio.file (Path API) — High‑performance file operations
 - Background workers for IO tasks and staggered loading
 
-⚠️ # ** Project Status ** (Known Limitations)
+⚠️ # **Project Status** (Known Limitations)
 This app is for experiments and training, not production. Some features are intentionally incomplete or still evolving.
 - Search
 The UI is implemented, but the actual search logic is not yet functional.
@@ -32,7 +32,7 @@ Several UI components and edge‑case behaviors for file operations are still be
 This project supports:
 - Android 11 (API 30) and above
 
-❤️ # **Purpose**
+❤️# **Purpose**
 This project is built with curiosity, patience, and a genuine desire to learn. It’s a safe space to experiment with modern Android tools, explore architecture patterns, and practice building a real‑world‑style file manager — all crafted with love.
 
 
