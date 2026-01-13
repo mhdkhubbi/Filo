@@ -37,7 +37,7 @@ This project supports:
 <img src="screenshots/home.png" width="300">
 
 ### Details Screen
-![Details Screen](screenshots/folders.png)
+<img src="screenshots/folders.png" width="300">
 
 # ❤️ **Purpose**
 This project is built with curiosity, patience, and a genuine desire to learn. It’s a safe space to experiment with modern Android tools, explore architecture patterns, and practice building a real‑world‑style file manager — all crafted with love.
