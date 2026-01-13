@@ -17,7 +17,7 @@ Core Android APIs
 - java.nio.file (Path API) — High‑performance file operations
 - Background workers for IO tasks and staggered loading
 
-⚠️ # **Project Status** (Known Limitations)
+⚠️ # **Project Status**
 This app is for experiments and training, not production. Some features are intentionally incomplete or still evolving.
 - Search
 The UI is implemented, but the actual search logic is not yet functional.
