@@ -1,5 +1,6 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
+import Gray500
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,13 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.InsertDriveFile
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.rounded.Android
-import androidx.compose.material.icons.rounded.AudioFile
-import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.PictureAsPdf
-import androidx.compose.material.icons.rounded.VideoFile
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -47,15 +42,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
 import io.mhdkhubbi.filo.R
+import io.mhdkhubbi.filo.domain.FileEntry
 import io.mhdkhubbi.filo.domain.FileType
-import io.mhdkhubbi.filo.domain.FsEntry
-import io.mhdkhubbi.filo.ui.theme.Gray500
 import io.mhdkhubbi.filo.ui.theme.screens.FileScreen
 
 @Composable
 fun FileList(
     onNavigation: (NavKey) -> Unit,
-    files: List<FsEntry>,
+    files: List<FileEntry>,
     isLoading: Boolean,
     selectedPaths: Set<String>,
     toggleSelection: (String) -> Unit,
@@ -82,9 +76,9 @@ fun FileList(
         }
 
         else ->
-            LazyColumn(state = listState) {
-                items(files, key = { it.fullPath }) { fileName ->
-                    val isSelected = selectedPaths.contains(fileName.fullPath)
+            LazyColumn(state = listState,modifier=Modifier.padding(start=2.dp),) {
+                items(files, key = { it.path }) { fileName ->
+                    val isSelected = selectedPaths.contains(fileName.path)
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(30.dp))
@@ -95,17 +89,19 @@ fun FileList(
                             )
                             .combinedClickable(
                                 onClick = {
-                                    if (fileName.isDirectory) {
+                                    if (fileName.isFolder) {
                                         clearSelection()
-                                        onNavigation(FileScreen(fileName.fullPath))
+                                        onNavigation(FileScreen(fileName.path))
                                     }
                                 },
                                 onLongClick = {
-                                    toggleSelection(fileName.fullPath)
+
+                                        toggleSelection(fileName.path)
+
                                 }
 
                             )
-                            .padding(10.dp),
+                            .padding(10.dp,end=0.dp,top=10.dp,bottom=10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -124,23 +120,21 @@ fun FileList(
                             )
                             Row(Modifier.padding(top = 4.dp)) {
                                 Text(
-                                    text = if (fileName.isDirectory) fileName.itemCount.toString()
+                                    text = if (fileName.isFolder) fileName.childrenCount.toString()
                                             + " items." else "",
                                     fontSize = 10.sp,
-                                    color = Gray500,
                                     lineHeight = 10.sp
                                 )
                                 Text(
-                                    text = fileName.sizeMega,
+                                    text = fileName.formattedSize,
                                     fontSize = 10.sp,
-                                    color = Gray500,
                                     lineHeight = 10.sp
                                 )
                             }
                         }
 
 
-                        OverflowMenu(path = fileName.fullPath,
+                        OverflowMenu(path = fileName.path,
                             onCopy = { path -> onCopy(path) },
                             onMove = { path -> onMove(path) },
                             onDelete = { path -> onDelete(path) }
@@ -162,16 +156,15 @@ fun OverflowMenu(
     onCopy: (String) -> Unit,
     onMove: (String) -> Unit,
     onDelete: (String) -> Unit,
-
-    ) {
+    modifier: Modifier = Modifier
+) {
     var menuExpanded by remember { mutableStateOf(false) }
-    Box (
-    ){
+    Box {
 
         IconButton(onClick = { menuExpanded = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Gray500)
         }
-        DropdownMenu(
+        DropdownMenu(containerColor = MaterialTheme.colorScheme.onPrimary,
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
             offset = DpOffset(
@@ -209,65 +202,65 @@ fun OverflowMenu(
 }
 
 @Composable
-fun FileIcon(fileName: FsEntry) {
+fun FileIcon(fileName: FileEntry, modifier: Modifier = Modifier) {
 
     when (fileName.type) {
         FileType.FOLDER -> Icon(
             painter = painterResource(R.drawable.folder),
             contentDescription = null,
-            //  tint = Color.Unspecified,
+            tint = Color.Unspecified,
             modifier = Modifier
                 .size(52.dp)
 
         )
 
         FileType.APK -> Icon(
-            Icons.Rounded.Android,
+            painter = painterResource(R.drawable.apk),
             contentDescription = null,
-            //  tint = Color.Unspecified,
+            tint = Color.Unspecified,
             modifier = Modifier
                 .size(52.dp)
 
         )
 
         FileType.PDF -> Icon(
-            Icons.Rounded.PictureAsPdf,
+            painter = painterResource(R.drawable.pdf),
             contentDescription = null,
-            //  tint = Color.Unspecified,
+              tint = Color.Unspecified,
             modifier = Modifier
                 .size(52.dp)
 
         )
 
         FileType.AUDIO -> Icon(
-            Icons.Rounded.AudioFile,
+            painter = painterResource(R.drawable.audio),
             contentDescription = null,
-            //  tint = Color.Unspecified,
+              tint = Color.Unspecified,
             modifier = Modifier
                 .size(52.dp)
 
         )
 
         FileType.IMAGE -> Icon(
-            Icons.Rounded.Image,
+            painter = painterResource(R.drawable.image),
             contentDescription = null,
-            //   tint = Color.Unspecified,
+              tint = Color.Unspecified,
             modifier = Modifier
                 .size(52.dp)
 
         )
 
         FileType.VIDEO -> Icon(
-            Icons.Rounded.VideoFile,
+            painter = painterResource(R.drawable.video),
             contentDescription = null,
-            //     tint = Color.Unspecified,
+               tint = Color.Unspecified,
             modifier = Modifier
                 .size(52.dp)
 
         )
 
         FileType.OTHER -> Icon(
-            Icons.AutoMirrored.Rounded.InsertDriveFile,
+            painter = painterResource(R.drawable.folder),
             contentDescription = null,
             //    tint = Color.Unspecified,
             modifier = Modifier

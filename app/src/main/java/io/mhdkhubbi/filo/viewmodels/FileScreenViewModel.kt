@@ -40,13 +40,12 @@ data class FileScreenUiState(
     val actionProgress: Float = 0f,
    // Dialog States
     val isDeletionDialogVisible: Boolean = false,
-
     val isCreateFolderDialogVisible: Boolean = false,
     val newFolderName: String = "",
     val folderNameError: String = "right",
     // Navigation & Helpers
     val shouldSyncNavigation: Boolean = false,
-    val targetDeletionPath: String = ""
+    val targetDeletionPath: String = "",
 )
 @SuppressLint("StaticFieldLeak")
 class FileScreenViewModel(private val context: Context) : ViewModel() {
@@ -85,6 +84,8 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
+
+
 
     fun requestFolderSize(path: String) {
         folderSizeQueue.trySend(path)
@@ -134,10 +135,12 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
     }
     fun copyItemFlag(path: String) {
         updateState { it.copy(activeOperation = "copy", sourcePaths = setOf(path)) }
+
     }
 
     fun moveItemFlag(path: String) {
         updateState { it.copy(activeOperation = "move", sourcePaths = setOf(path)) }
+
     }
     fun copyAllFlag() {
         val state = _uiState.value
@@ -148,6 +151,7 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
                 selectedPaths = emptySet()
             )
         }
+
     }
 
     fun moveAllFlag() {
@@ -159,6 +163,7 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
                 selectedPaths = emptySet()
             )
         }
+
     }
     fun clearNavigationResetFlag() {
         updateState { it.copy(shouldSyncNavigation = false) }
@@ -308,7 +313,9 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
 
                 withContext(Dispatchers.Main) {
                     updateState { it.copy(shouldSyncNavigation = true) }
+
                 }
+
 
                 loadFiles(state.currentPath)
 
@@ -345,6 +352,7 @@ class FileScreenViewModel(private val context: Context) : ViewModel() {
 
                 withContext(Dispatchers.Main) {
                     updateState { it.copy(shouldSyncNavigation = true) }
+
                 }
 
                 loadFiles(state.currentPath)
