@@ -25,8 +25,7 @@ The UI is implemented, but the actual search logic is not yet functional.
 Opening files internally or via external apps is not implemented yet.
 - Optimization
 While IO performance has been improved, deeper refactoring and tuning are still needed.
-- Work in Progress
-Several UI components and edge‑case behaviors for file operations are still being refined.
+
 
 # 📱**Android Version Support**
 This project supports:
