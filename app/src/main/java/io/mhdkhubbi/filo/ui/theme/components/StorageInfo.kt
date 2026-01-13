@@ -1,7 +1,5 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
-import Blue50
-import Gray100
 import Gray500
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,7 +50,7 @@ fun StorageInfo(
             modifier = Modifier
                 .border(
                     width = 1.dp,
-                    color = Gray100,
+                    color = MaterialTheme.colorScheme.outlineVariant,
                     shape = RoundedCornerShape(12.dp)
                 )
                 .padding(16.dp)
@@ -87,14 +85,14 @@ fun CustomCircularProgressIndicator(
 ) {
     Box(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.onPrimary,RoundedCornerShape(12.dp)),
+            .background(MaterialTheme.colorScheme.background,RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
             {sizeStorage},
             strokeWidth = 10.dp,
             modifier = Modifier.size(80.dp),
-            trackColor = Blue50
+            trackColor = MaterialTheme.colorScheme.surfaceTint
         )
         Text(
             label,

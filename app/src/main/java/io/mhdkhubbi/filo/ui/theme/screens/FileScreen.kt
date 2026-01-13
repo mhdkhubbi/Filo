@@ -1,9 +1,7 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
-import Blue500
 import FileScreenUiState
-import Gray50
-import Gray500
+import FileScreenViewModel
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -45,6 +43,50 @@ import io.mhdkhubbi.filo.ui.theme.components.FileList
 import io.mhdkhubbi.filo.ui.theme.components.FileRow
 import io.mhdkhubbi.filo.ui.theme.components.TopBar
 
+@Composable
+fun FileScreen(
+    fileViewModel: FileScreenViewModel,
+    uiState: FileScreenUiState,
+    path: String,
+    backStack: NavBackStack<NavKey>,
+    onNavigation: (NavKey) -> Unit
+) {
+    FileScreen(
+        path = path,
+        onNavigation = onNavigation,
+        backStack = backStack,
+        load = fileViewModel::loadMediaFolders,
+        // ViewModel actions
+        loadFiles = fileViewModel::loadFiles,
+        uiState = uiState,
+        onChangeDeletedOne = fileViewModel::deleteItemChange,
+        onFolderNameChange = fileViewModel::folderNameChange,
+        onAddFolder = fileViewModel::addingFolder,
+
+        onExecutePendingOperation = fileViewModel::executeActiveOperation,
+
+        onSelectAll = fileViewModel::selectAll,
+        onClearSelection = fileViewModel::clearSelection,
+        onToggleSelection = fileViewModel::toggleSelection,
+
+        onCopyItem = fileViewModel::copyItemFlag,
+        onMoveItem = fileViewModel::moveItemFlag,
+
+        onDeleteOne = fileViewModel::deleteItem,
+        onDeleteSelect = fileViewModel::deleteAll,
+
+        onCopy = fileViewModel::copyAllFlag,
+        onMove = fileViewModel::moveAllFlag,
+
+        onShowDialogChange = fileViewModel::showDialogFlag,
+        onCreateFolderDialogChange = fileViewModel::folderDialogFlag,
+
+        onResetNavigation = fileViewModel::resetNavigationTo,
+        onClearNavigationResetFlag = fileViewModel::clearNavigationResetFlag,
+
+        onChangeDestinationPath = fileViewModel::targetPathChange
+    )
+}
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
@@ -298,10 +340,10 @@ fun FolderField(
                 .height(50.dp)
                 .border(
                     width = 1.dp,
-                    color = Blue500,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(12.dp)
                 )
-                .background(Gray50, RoundedCornerShape(12.dp)),
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.CenterStart
         ) {
             Row(
@@ -324,7 +366,7 @@ fun FolderField(
                     decorationBox = { innerTextField ->
                         if (nameFolder.isEmpty()) {
                             Text(
-                                "Enter name of folder", color = Gray500
+                                "Enter name of folder", color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         innerTextField()

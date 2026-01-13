@@ -1,7 +1,8 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
-import Gray500
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,11 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -38,13 +42,18 @@ fun TopBar(modifier: Modifier = Modifier,onNagivation:(NavKey)->Unit){
 
             Text(modifier=Modifier.weight(1f),
                 text= stringResource(R.string.app_name), fontSize = 25.sp, fontWeight = FontWeight.Medium)
-            Icon(
-                painter = painterResource(R.drawable.settings),
-                contentDescription = "Settings",tint= Gray500,
-                modifier = Modifier.size(25.dp).clickable{
-                    onNagivation(InfoScreen)
-                }
-            )
+            Box(Modifier.clip(RoundedCornerShape(30.dp))
+                .background(MaterialTheme.colorScheme.background,RoundedCornerShape(15.dp))
+                .size(35.dp).clickable{
+                onNagivation(InfoScreen)
+            }, contentAlignment = Alignment.Center
+            ){
+                Icon(
+                    painter = painterResource(R.drawable.settings),
+                    contentDescription = "Settings",tint= MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(25.dp)
+                )
+            }
         }
         Spacer(Modifier.height(30.dp))
         SearchField()

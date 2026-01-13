@@ -2,15 +2,15 @@ package io.mhdkhubbi.filo.ui.theme
 
 import Blue100
 import Blue200
-import Blue300
+import Blue50
 import Blue500
-import Blue700
 import Blue800
 import Blue900
 import Gray100
-import Gray200
 import Gray300
+import Gray400
 import Gray50
+import Gray500
 import Gray600
 import Gray700
 import Gray800
@@ -26,51 +26,48 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-
 import io.mhdkhubbi.andro.ui.theme.AppTypography
 
-private val LightColorScheme = lightColorScheme(
-    primary = Blue500,               // Your exact 0791F8
+// ui/theme/Theme.kt
+
+private val LightColorScheme = lightColorScheme(    primary = Blue500,
     onPrimary = Color.White,
-    primaryContainer = Blue100,      // Light blue for buttons/containers
+    primaryContainer = Blue100,
     onPrimaryContainer = Blue900,
 
-    secondary = Blue700,
-    onSecondary = Color.White,
+    surface = Color.White,
+    onSurface = Gray900,
 
-    surface = Color.White,           // Clean white background
-    onSurface = Gray900,             // Almost black text
-    surfaceVariant = Gray100,        // Very light gray for cards
-    onSurfaceVariant = Gray600,      // Medium gray for labels
+    // MAPPING YOUR REQUESTS HERE:
+    surfaceVariant = Gray50,         // background Gray50
+    onSurfaceVariant = Gray500,      // tint of icon Gray500
+    outlineVariant = Gray100,        // border Gray100
 
-    outline = Gray300,               // For borders
-    background = Color.White
+    outline = Gray300,
+    background = Color.White,
+    surfaceTint = Blue50             // trackColor Blue50
 )
 
 private val DarkColorScheme = darkColorScheme(
-    // Primary is lighter in dark mode (Blue 200 or 300) to ensure readability
     primary = Blue200,
-    onPrimary = Blue900,             // Dark text on light blue
-    primaryContainer = Blue800,      // Deep blue for buttons
-    onPrimaryContainer = Blue100,    // Light blue text on deep blue
+    onPrimary = Blue900,
+    primaryContainer = Blue800,
+    onPrimaryContainer = Blue100,
 
-    secondary = Blue300,
-    onSecondary = Blue900,
-
-    // Backgrounds use your Monochrome Gray 900
     background = Gray900,
-    onBackground = Gray50,           // Near-white text
+    onBackground = Gray50,
 
-    // Surfaces (Cards, Bottom Sheets)
     surface = Gray800,
     onSurface = Gray50,
-    surfaceVariant = Gray700,        // For subtle separation
-    onSurfaceVariant = Gray200,
 
-    // Borders
-    outline = Gray600                // Visible but subtle on dark backgrounds
+    // MAPPING DARK MODE COMPLEMENTS:
+    surfaceVariant = Gray700,        // Darker gray for backgrounds
+    onSurfaceVariant = Gray400,      // Lighter gray for icons in dark mode
+    outlineVariant = Gray700,        // Subtle border for dark mode
+
+    outline = Gray600,
+    surfaceTint = Blue900            // Deep blue track for dark mode
 )
-
 
 @Composable
 fun FiloTheme(

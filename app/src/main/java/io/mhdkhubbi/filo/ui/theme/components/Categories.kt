@@ -1,6 +1,5 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
-import Gray100
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -55,7 +55,7 @@ fun Categories(onNavigation:(NavKey)->Unit,
             Box(
                 Modifier.padding(20.dp).size(100.dp).weight(1f).border(
                     width = 1.dp,
-                    Gray100,
+                    MaterialTheme.colorScheme.outlineVariant,
                     shape = RoundedCornerShape(12.dp)
                 ).clickable {
                     onNavigation(FileScreen("media_images_root"))
@@ -82,7 +82,7 @@ fun Categories(onNavigation:(NavKey)->Unit,
 
             Box( Modifier.padding(20.dp).size(100.dp).weight(1f).border(
                 width = 1.dp,
-                Gray100,
+                MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(12.dp)
             ).clickable {
                 onNavigation(FileScreen("media_videos_root"))
@@ -107,7 +107,7 @@ fun Categories(onNavigation:(NavKey)->Unit,
 
             Box( Modifier.padding(20.dp).size(100.dp).weight(1f).border(
                 width = 1.dp,
-                Gray100,
+                MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(12.dp)
             ).clickable {onNavigation(FileScreen("media_music_root"))}, contentAlignment = Alignment.Center)
             {
@@ -129,7 +129,7 @@ fun Categories(onNavigation:(NavKey)->Unit,
 
             Box( Modifier.padding(20.dp).size(100.dp).weight(1f).border(
                 width = 1.dp,
-                color = Gray100,
+                color = MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(12.dp)
             ).clickable {onNavigation(FileScreen("media_document_root"))}, contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -152,7 +152,7 @@ fun Categories(onNavigation:(NavKey)->Unit,
 
             Box( Modifier.padding(20.dp).size(100.dp).weight(1f).border(
                 width = 1.dp,
-                color = Gray100,
+                color = MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(12.dp)
             ).clickable {onNavigation(FileScreen("media_download_root"))}, contentAlignment = Alignment.Center)
             {

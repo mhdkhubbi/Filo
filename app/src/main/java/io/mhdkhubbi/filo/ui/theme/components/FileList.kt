@@ -1,6 +1,5 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
-import Gray500
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -83,7 +83,7 @@ fun FileList(
                         modifier = Modifier
                             .clip(RoundedCornerShape(30.dp))
                             .background(
-                                if (isSelected) Color.LightGray
+                                if (isSelected) MaterialTheme.colorScheme.outline
                                 else
                                     MaterialTheme.colorScheme.background
                             )
@@ -162,7 +162,7 @@ fun OverflowMenu(
     Box {
 
         IconButton(onClick = { menuExpanded = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = Gray500)
+            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         DropdownMenu(containerColor = MaterialTheme.colorScheme.onPrimary,
             expanded = menuExpanded,
@@ -260,9 +260,9 @@ fun FileIcon(fileName: FileEntry, modifier: Modifier = Modifier) {
         )
 
         FileType.OTHER -> Icon(
-            painter = painterResource(R.drawable.folder),
+            imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
             contentDescription = null,
-            //    tint = Color.Unspecified,
+               tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .size(52.dp)
 

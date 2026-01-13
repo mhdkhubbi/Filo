@@ -1,7 +1,6 @@
 package io.mhdkhubbi.filo.ui.theme.screens
 
 
-import Gray100
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,7 +54,7 @@ fun InfoScreen() {
 
         }
         Spacer(Modifier.height(20.dp))
-        HorizontalDivider(color =Gray100)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(
             modifier = Modifier.fillMaxWidth()
                 .padding(16.dp),
@@ -67,7 +66,7 @@ fun InfoScreen() {
             Text("Filoapp", fontSize = 15.sp)
         }
         Spacer(Modifier.height(10.dp))
-        HorizontalDivider(color =Gray100)
+        HorizontalDivider(color =MaterialTheme.colorScheme.outlineVariant)
         Row(
             modifier = Modifier.fillMaxWidth()
                 .padding(16.dp),
@@ -78,7 +77,7 @@ fun InfoScreen() {
             Spacer(Modifier.width(45.dp))
             Text("1.0", fontSize = 15.sp)
         }
-        HorizontalDivider(color =Gray100)
+        HorizontalDivider(color =MaterialTheme.colorScheme.outlineVariant)
         Row(
             modifier = Modifier.fillMaxWidth()
                 .padding(16.dp),
@@ -89,7 +88,7 @@ fun InfoScreen() {
             Spacer(Modifier.width(30.dp))
             Text("mhdkhubbi", fontSize = 15.sp)
         }
-        HorizontalDivider(color =Gray100)
+        HorizontalDivider(color =MaterialTheme.colorScheme.outlineVariant)
         Spacer(Modifier.height(55.dp))
         Row(Modifier.padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,

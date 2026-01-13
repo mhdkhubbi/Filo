@@ -1,7 +1,5 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
-import Gray50
-import Gray500
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +14,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +36,7 @@ fun SearchField(
             .fillMaxWidth()
             .padding(start = 15.dp, end = 15.dp)
             .height(40.dp)
-            .background(Gray50, RoundedCornerShape(12.dp)),
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
         Row( modifier = Modifier.padding(8.dp),
@@ -47,7 +45,7 @@ fun SearchField(
         ) {
             Icon(
                 Icons.Default.Search,
-                contentDescription = "Search", tint = Gray500
+                contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant
 
             )
             Spacer(Modifier.width(8.dp))
@@ -55,11 +53,11 @@ fun SearchField(
                 value = text,
                 onValueChange = {text=it},
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Gray500),
+               // textStyle = LocalTextStyle.current.copy(color = Gray500),
                 decorationBox = { innerTextField ->
                     if (text.isEmpty()) {
                         Text(
-                            "Search folders or files",color=Gray500
+                            "Search folders or files",color=MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     innerTextField()

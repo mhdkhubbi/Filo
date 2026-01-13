@@ -4,13 +4,8 @@ import FileScreenViewModel
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -83,35 +78,21 @@ fun MainScreen(
                 }
 
             }, transitionSpec = {
-                fadeIn(
-                    animationSpec = tween(
-                        durationMillis = 500,
-                        easing = LinearOutSlowInEasing
-                    )
-                ) togetherWith ExitTransition.None
 
+                slideInHorizontally(initialOffsetX = { it }) togetherWith
+                        slideOutHorizontally(targetOffsetX = { -it })
             },
-
             popTransitionSpec = {
-                EnterTransition.None togetherWith fadeOut(
-                    animationSpec = tween(
-                        durationMillis = 500,
-                        easing = FastOutLinearInEasing
-                    )
-                )
 
+                slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                        slideOutHorizontally(targetOffsetX = { it })
+            },
+            predictivePopTransitionSpec = {
+
+                slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                        slideOutHorizontally(targetOffsetX = { it })
             },
 
-            predictivePopTransitionSpec = {
-                EnterTransition.None togetherWith fadeOut(
-                    animationSpec = tween(
-                        durationMillis = 500,
-                        easing = FastOutLinearInEasing
-                    )
-                )
-
-            }
-            ,
             entryProvider = entryProvider {
                 entry<HomeScreen> {
                     HomeScreen(
@@ -126,40 +107,11 @@ fun MainScreen(
 
                 entry<FileScreen> { entry ->
                     FileScreen(
-                        path = entry.path,
-                        onNavigation = onNavigation,
-                        backStack = backStack,
-                        load = fileViewModel::loadMediaFolders,
-                        // ViewModel actions
-                        loadFiles = fileViewModel::loadFiles,
+                        fileViewModel = fileViewModel,
                         uiState = uiState,
-                        onChangeDeletedOne = fileViewModel::deleteItemChange,
-                        onFolderNameChange = fileViewModel::folderNameChange,
-                        onAddFolder = fileViewModel::addingFolder,
-
-                        onExecutePendingOperation = fileViewModel::executeActiveOperation,
-
-                        onSelectAll = fileViewModel::selectAll,
-                        onClearSelection = fileViewModel::clearSelection,
-                        onToggleSelection = fileViewModel::toggleSelection,
-
-                        onCopyItem = fileViewModel::copyItemFlag,
-                        onMoveItem = fileViewModel::moveItemFlag,
-
-                        onDeleteOne = fileViewModel::deleteItem,
-                        onDeleteSelect = fileViewModel::deleteAll,
-
-                        onCopy = fileViewModel::copyAllFlag,
-                        onMove = fileViewModel::moveAllFlag,
-
-                        onShowDialogChange = fileViewModel::showDialogFlag,
-                        onCreateFolderDialogChange = fileViewModel::folderDialogFlag,
-
-                        onResetNavigation = fileViewModel::resetNavigationTo,
-                        onClearNavigationResetFlag = fileViewModel::clearNavigationResetFlag,
-
-                        onChangeDestinationPath = fileViewModel::targetPathChange
-
+                        path = entry.path,
+                        backStack = backStack,
+                        onNavigation = onNavigation
                     )
                 }
                 entry<InfoScreen> {

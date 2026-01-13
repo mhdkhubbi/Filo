@@ -1,6 +1,5 @@
 package io.mhdkhubbi.filo.ui.theme.components
 
-import Gray500
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,6 +17,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -86,7 +86,7 @@ fun FileOptions(
     if (isShown) {
         Row {
             Icon(
-                Icons.Default.Delete, tint = Gray500,
+                Icons.Default.Delete, tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 contentDescription = "Delete",
                 modifier = Modifier
                     .padding(end = 15.dp)
@@ -94,7 +94,7 @@ fun FileOptions(
                     .clickable { onDelete() }
             )
             Icon(
-                Icons.AutoMirrored.Filled.DriveFileMove, tint = Gray500,
+                Icons.AutoMirrored.Filled.DriveFileMove, tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 contentDescription = "DriveFileMove",
                 modifier = Modifier
                     .padding(end = 15.dp)
@@ -104,7 +104,7 @@ fun FileOptions(
                     }
             )
             Icon(
-                Icons.Default.ContentCopy, tint = Gray500,
+                Icons.Default.ContentCopy, tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 contentDescription = "ContentCopy",
                 modifier = Modifier
                     .padding(end = 15.dp)
@@ -112,7 +112,7 @@ fun FileOptions(
                     .clickable { onCopy() }
             )
             Icon(
-                Icons.Default.Deselect, tint = Gray500,
+                Icons.Default.Deselect, tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 contentDescription = "Deselect",
                 modifier = Modifier
                     .padding(end = 15.dp)
@@ -122,7 +122,7 @@ fun FileOptions(
                     }
             )
             Icon(
-                Icons.Default.SelectAll, tint = Gray500,
+                Icons.Default.SelectAll, tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 contentDescription = "SelectAll",
                 modifier = Modifier
                     .padding(end = 15.dp)
