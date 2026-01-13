@@ -16,10 +16,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -32,8 +36,6 @@ import io.mhdkhubbi.filo.viewmodels.HomeScreenViewModel
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    homeViewModel: HomeScreenViewModel = viewModel(),
-    fileViewModel: FileScreenViewModel = viewModel()
 
 ) {
     val backStack = rememberNavBackStack(HomeScreen)
@@ -44,15 +46,28 @@ fun MainScreen(
 
     val currentScreen = backStack.last()
     val beforeHomeScreen = currentScreen is HomeScreen
-    val uiState by fileViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val fileViewModel = remember { FileScreenViewModel(context) }
+    val uiState by fileViewModel.uiState.collectAsStateWithLifecycle()
+
+    val homeViewModel: HomeScreenViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(HomeScreenViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return HomeScreenViewModel(context) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
+    )
 
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 20.dp)
+            .padding(top = 10.dp)
     ) {
-
 
         NavDisplay(
             backStack = backStack, onBack = {
@@ -62,7 +77,7 @@ fun MainScreen(
                 } else {
                     // Second back press → navigate back
                     if (beforeHomeScreen) {
-                        fileViewModel.cancelPendingOperation()
+                        fileViewModel.cancelActiveOperation()
                     }
                     backStack.removeLastOrNull()
                 }
@@ -98,57 +113,57 @@ fun MainScreen(
             }
             ,
             entryProvider = entryProvider {
-
-                // ---------------- HOME SCREEN ----------------
-
                 entry<HomeScreen> {
-
-
-                    HomeScreen(onNavigation = onNavigation)
-
-
+                    HomeScreen(
+                        onNavigation = onNavigation,
+                        storageState = homeViewModel.stats,
+                        sizeStorage = homeViewModel::getUsagePercent,
+                        percentUsage = homeViewModel::formatUsagePercent,
+                        label = homeViewModel::getUsageLabel,
+                        load = fileViewModel::loadMediaFolders,
+                    )
                 }
 
-                // ---------------- FILE SCREEN ----------------
-
                 entry<FileScreen> { entry ->
-
-
                     FileScreen(
                         path = entry.path,
                         onNavigation = onNavigation,
                         backStack = backStack,
-
+                        load = fileViewModel::loadMediaFolders,
                         // ViewModel actions
                         loadFiles = fileViewModel::loadFiles,
                         uiState = uiState,
-
+                        onChangeDeletedOne = fileViewModel::deleteItemChange,
                         onFolderNameChange = fileViewModel::folderNameChange,
                         onAddFolder = fileViewModel::addingFolder,
 
-                        onExecutePendingOperation = fileViewModel::executePendingOperation,
+                        onExecutePendingOperation = fileViewModel::executeActiveOperation,
 
                         onSelectAll = fileViewModel::selectAll,
                         onClearSelection = fileViewModel::clearSelection,
                         onToggleSelection = fileViewModel::toggleSelection,
 
-                        onCopyItem = fileViewModel::onCopyItem,
-                        onMoveItem = fileViewModel::onMoveItem,
+                        onCopyItem = fileViewModel::copyItemFlag,
+                        onMoveItem = fileViewModel::moveItemFlag,
 
-                        onDeleteOne = fileViewModel::deleteOne,
-                        onDeleteSelect = fileViewModel::deleteSelected,
+                        onDeleteOne = fileViewModel::deleteItem,
+                        onDeleteSelect = fileViewModel::deleteAll,
 
-                        onCopy = fileViewModel::onCopy,
-                        onMove = fileViewModel::onMove,
+                        onCopy = fileViewModel::copyAllFlag,
+                        onMove = fileViewModel::moveAllFlag,
 
-                        onShowDialogChange = fileViewModel::ShowDialogChange,
-                        onCreateFolderDialogChange = fileViewModel::CreateFolderDialogChange,
+                        onShowDialogChange = fileViewModel::showDialogFlag,
+                        onCreateFolderDialogChange = fileViewModel::folderDialogFlag,
 
                         onResetNavigation = fileViewModel::resetNavigationTo,
                         onClearNavigationResetFlag = fileViewModel::clearNavigationResetFlag,
 
-                        onChangeDestinationPath = fileViewModel::changedestinationPath
+                        onChangeDestinationPath = fileViewModel::targetPathChange
+
                     )
+                }
+                entry<InfoScreen> {
+                    InfoScreen()
                 }
 
 

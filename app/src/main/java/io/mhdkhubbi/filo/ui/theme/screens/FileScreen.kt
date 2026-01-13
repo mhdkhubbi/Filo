@@ -149,7 +149,7 @@ fun FileScreen(
 
     ) { padding ->
         Column {
-            TopBar()
+            TopBar(onNagivation={onNavigation(it)})
             Spacer(Modifier.height(8.dp))
             if (uiState.activeOperation != null && isInFileScreen && path != "media_images_root"
                 && path != "media_videos_root" &&

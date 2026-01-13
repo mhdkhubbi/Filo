@@ -29,7 +29,7 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        TopBar()
+        TopBar(onNagivation = {onNavigation(it)})
         Spacer(Modifier.height(15.dp))
         LazyColumn(
             modifier = Modifier
