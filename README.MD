@@ -31,6 +31,13 @@ Several UI components and edge‑case behaviors for file operations are still be
 # 📱**Android Version Support**
 This project supports:
 - Android 11 (API 30) and above
+## 📸 Screenshots
+
+### Home Screen
+![Home Screen](screenshots/home.png)
+
+### Details Screen
+![Details Screen](screenshots/folders.png)
 
 # ❤️ **Purpose**
 This project is built with curiosity, patience, and a genuine desire to learn. It’s a safe space to experiment with modern Android tools, explore architecture patterns, and practice building a real‑world‑style file manager — all crafted with love.
