@@ -9,5 +9,5 @@ data object HomeScreen : NavKey
 @Serializable
 data class FileScreen(val path: String) : NavKey
 
-//@Serializable
-//data class FileScreenKey(val path: String) : NavKey
+@Serializable
+data object InfoScreen : NavKey
